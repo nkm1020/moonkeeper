@@ -10,7 +10,7 @@
 | --- | --- |
 | `site_ids`, `site_latlon` | 세로축 착륙지 |
 | `landing_times_utc` | 가로축 착륙 시각 |
-| `overall_margin` | 칸 색. 0보다 크면 모든 기준 통과 |
+| `overall_margin` | 칸 색. **0 이상**이면 모든 기준 통과 (`passed`와 같음). 기준값에 딱 맞은 칸은 0이에요 (예: 접근 경로 값이 0.1 단위라 0.5에 딱 걸리는 날) |
 | `passed` | 통과 표시 |
 | `fail_causes` | 실패 원인 `power`·`comm`·`approach` (여러 개면 쉼표) |
 | `metrics` | `sun_mean`, `longest_dark_h`, `first_sunset_h`, `comm_frac`, `longest_comm_gap_h` |
@@ -39,7 +39,7 @@
 | `breakdown` | 원인별 비율 `ok`, `power`, `approach`, `comm`, `other` |
 | `grid` | 배경 칸: `east_m`, `north_m`, `passed`, `fail_causes` |
 | `samples` | 점: `east_m`, `north_m`, `status` |
-| `sigma_along_m`, `sigma_cross_m`, `heading_deg`, `seed` | 조건 |
+| `sigma_along_m`, `sigma_cross_m`, `heading_deg`, `seed` | 조건. 지금은 두 sigma가 같아서(100 m) `heading_deg`를 바꿔도 결과가 같아요 |
 | `outside_grid_frac` | 0보다 크면 "일부 착륙선이 계산 범위 밖" 경고 |
 
 그 밖에 `target_site`, `landing_time_utc`, `duration_h`, `criteria`, `criteria_status`, `approach_site_value`, `seed_check`(시드 10개 표준편차 vs 이론값)도 있어요. `grid`에는 `point_id`, 칸별 `metrics`도 들어 있어요.
@@ -56,7 +56,6 @@
 | `summary.horizon_layer`, `observer_height_m` | 비교에 쓴 지평선 (지면 0 m) |
 | `summary.period_utc`, `n_times` | 비교 기간 (18.6년), 시각 수 |
 | `points` | 지점별 `point_id`, `lat_deg`, `lon_east_deg`, `ours_sun`, `pgda_sun`, `ours_earth`, `pgda_earth` |
-
 | `summary.nhf_sun_vs_pgda`, `nhf_earth_vs_pgda` | NHF 지평선(용휘님)으로 계산한 값 vs PGDA (필드는 위와 같음) |
 | `summary.nhf_sun_vs_precise`, `nhf_earth_vs_precise` | NHF로 계산한 값 vs 정밀 지평선으로 계산한 값 |
 | `summary.nhf_horizon_error_deg` | 지점별 지평선 각도 차이(RMS, 도)의 요약: `median`, `p95`, `max`, `mean` |

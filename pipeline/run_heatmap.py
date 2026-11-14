@@ -2,7 +2,8 @@
 
 Usage: python pipeline/run_heatmap.py INPUT_DIR [--duration-days 14] [--delays 1 3 7 14] [--out data/outputs]
 Thresholds are read from criteria.json if present; otherwise the example assumptions are used
-and the output is marked "provisional".
+and the output is marked "provisional". The mission duration comes from --duration-days, else
+mission_duration_days in criteria.json (as in run_ghost_landers.py), else 14 days.
 """
 import argparse
 import json
@@ -18,7 +19,8 @@ from moonkeeper_b import inputs, metrics, io_utils  # noqa: E402
 
 ap = argparse.ArgumentParser()
 ap.add_argument("input_dir")
-ap.add_argument("--duration-days", type=float, default=14.0)
+ap.add_argument("--duration-days", type=float, default=None,
+                help="default: mission_duration_days in criteria.json, else 14")
 ap.add_argument("--delays", type=float, nargs="+", default=[1, 3, 7])
 ap.add_argument("--criteria", default=str(ROOT / "data" / "criteria.json"))
 ap.add_argument("--out", default=str(ROOT / "data" / "outputs"))
@@ -41,12 +43,16 @@ if crit_path.exists():
     criteria = {k: (v["metric"], v["kind"], float(v["limit"])) for k, v in raw["criteria"].items()}
     criteria_status = raw.get("status", "sourced")
     criteria_sources = {k: v.get("source", "assumption") for k, v in raw["criteria"].items()}
+    D_days = float(raw.get("mission_duration_days", 14))
 else:
     criteria = dict(metrics.EXAMPLE_CRITERIA, approach=("approach", "min", 0.5))
     criteria_status = "provisional: example assumptions, not mission requirements"
     criteria_sources = {k: "assumption" for k in criteria}
+    D_days = 14.0
+if a.duration_days is not None:
+    D_days = a.duration_days
 
-D_h = a.duration_days * 24
+D_h = D_days * 24
 tab = metrics.heatmap(vis["sun_frac"], vis["earth_vis"], vis["times"], sites, apr["landing_times"],
                       D_h, criteria, extra={"approach": approach})
 out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
