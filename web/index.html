@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Moonkeeper: lunar south-pole landing replanning. NASA LOLA terrain and JPL Horizons Sun and Earth, all precomputed.">
+<title>Moonkeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="col bar">
+    <a class="logo" href="#step=sky" aria-label="Moonkeeper">
+      <svg viewBox="0 0 24 16" aria-hidden="true"><path d="M0 14 L5 10 L8 12 L12 6.5 L15.5 10 L19 8 L24 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="3" r="2.6" fill="var(--power)"/></svg>
+      <span>Moonkeeper</span>
+    </a>
+    <nav id="steps" class="steps" aria-label="Steps"></nav>
+    <div class="bar-end">
+      <span id="dummy-badge" class="badge" hidden>Dummy data</span>
+      <div class="segmented lang" role="group" id="lang" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="ko" aria-pressed="false">한국어</button>
+      </div>
+    </div>
+  </div>
+</header>
+<main id="screen" class="col"></main>
+<footer class="col pager">
+  <button id="prev" class="btn" type="button"></button>
+  <span class="scope" id="scope"></span>
+  <button id="next" class="btn" type="button"></button>
+</footer>
+<noscript><p class="col">Moonkeeper draws its screens with JavaScript.</p></noscript>
+</body>
+</html>

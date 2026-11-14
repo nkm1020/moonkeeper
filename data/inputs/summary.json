@@ -1,0 +1,98 @@
+[
+ {
+  "site": "cr1",
+  "ground_h_m": 1942.4797204228737,
+  "horizon_min": -2.525036296171214,
+  "horizon_max": 2.2240232819414913,
+  "sun_mean": 0.46796417821833275,
+  "lit_frac": 0.4663299663299663,
+  "earth_frac": 0.5193076599326599,
+  "approach_mean": 0.7768939393939395,
+  "pad_lit_approach_dark_days": 0,
+  "pad_lit_days": 374
+ },
+ {
+  "site": "sr1",
+  "ground_h_m": 1734.1230695684608,
+  "horizon_min": -2.5532041082627295,
+  "horizon_max": 1.0756373028607529,
+  "sun_mean": 0.7643341413287883,
+  "lit_frac": 0.7643097643097643,
+  "earth_frac": 0.5397201178451179,
+  "approach_mean": 0.6292929292929293,
+  "pad_lit_approach_dark_days": 129,
+  "pad_lit_days": 608
+ },
+ {
+  "site": "gr1",
+  "ground_h_m": 1778.2514028772152,
+  "horizon_min": -2.0321856934195184,
+  "horizon_max": 2.7032170278433925,
+  "sun_mean": 0.5663477910579313,
+  "lit_frac": 0.5687605218855218,
+  "earth_frac": 0.5754945286195287,
+  "approach_mean": 0.7117424242424243,
+  "pad_lit_approach_dark_days": 15,
+  "pad_lit_days": 453
+ },
+ {
+  "site": "mp1",
+  "ground_h_m": 4969.052144005926,
+  "horizon_min": -4.854998783966084,
+  "horizon_max": 2.4631169995134825,
+  "sun_mean": 0.7144330388438209,
+  "lit_frac": 0.7151725589225589,
+  "earth_frac": 0.6369949494949495,
+  "approach_mean": 0.7771464646464646,
+  "pad_lit_approach_dark_days": 12,
+  "pad_lit_days": 567
+ },
+ {
+  "site": "lp1",
+  "ground_h_m": 6300.2293380250485,
+  "horizon_min": -1.3771596619997097,
+  "horizon_max": 6.288882755916664,
+  "sun_mean": 0.12922261307420072,
+  "lit_frac": 0.12973484848484848,
+  "earth_frac": 0.5230429292929293,
+  "approach_mean": 0.6436868686868688,
+  "pad_lit_approach_dark_days": 1,
+  "pad_lit_days": 102
+ },
+ {
+  "site": "im2",
+  "ground_h_m": 5321.698803046513,
+  "horizon_min": -1.4705583825424908,
+  "horizon_max": 4.064223093504382,
+  "sun_mean": 0.45462936920882346,
+  "lit_frac": 0.45444023569023567,
+  "earth_frac": 0.9444444444444444,
+  "approach_mean": 0.4748737373737374,
+  "pad_lit_approach_dark_days": 1,
+  "pad_lit_days": 358
+ },
+ {
+  "site": "pole",
+  "ground_h_m": 1289.625,
+  "horizon_min": -1.956671236929564,
+  "horizon_max": 11.326386988418461,
+  "sun_mean": 0.27208518002780163,
+  "lit_frac": 0.27178030303030304,
+  "earth_frac": 0.3347537878787879,
+  "approach_mean": 0.44469696969696976,
+  "pad_lit_approach_dark_days": 164,
+  "pad_lit_days": 212
+ },
+ {
+  "site": "shk",
+  "ground_h_m": -2788.8792496740125,
+  "horizon_min": 19.772732285817185,
+  "horizon_max": 23.57732728831451,
+  "sun_mean": 0.0,
+  "lit_frac": 0.0,
+  "earth_frac": 0.0,
+  "approach_mean": 0.06073232323232323,
+  "pad_lit_approach_dark_days": 0,
+  "pad_lit_days": 0
+ }
+]

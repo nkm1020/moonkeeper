@@ -1,0 +1,21 @@
+# 원본 지형·천체력 (230 MB+, GitHub 100 MB 제한) → pipeline/fetch_*.py로 다시 받아요
+data/raw/*
+!data/raw/README.md
+
+# 팀원에게 따로 보낸 묶음 파일
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 도구·OS
+.DS_Store
+.taste-skill/
+.impeccable/
+.gstack/
+.vscode/
+.idea/
+.claude/
