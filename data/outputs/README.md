@@ -82,4 +82,4 @@
 
 - `heatmap.png`, `ghost_landers_im2.png`: 확인용 그림
 - `ghost_landers.json`은 정밀 지평선(`grid_horizons_im2.json`) 결과예요
-- 기준값이 Keev 확정값이 아니면 `criteria_status`가 `provisional`이에요. `data/criteria.json`이 생기면 다시 계산해요.
+- `criteria_status`는 `data/criteria.json`의 `status`예요. 지금은 `assumed`(Keev 조사로도 출처 있는 숫자가 없어 가정값)라서 화면에 "assumed"를 띄워요. 파일이 없으면 `provisional`이에요.

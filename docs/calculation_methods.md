@@ -20,7 +20,7 @@ Part of MoonKeeper (calculation: 현지). 현지 set the direction, requested ea
 
 Window means use cumulative sums, so any (t0, D) is evaluated in constant time.
 Each criterion has a threshold; margin = (value - limit)/|limit| for minimum limits and (limit - value)/|limit| for maximum limits. The cell value is the smallest margin; a cell passes when every margin is >= 0.
-Thresholds in `EXAMPLE_CRITERIA` are placeholders, not mission requirements. Values used in results are listed with their sources in the References section, or marked as assumptions.
+Thresholds in `EXAMPLE_CRITERIA` are placeholders, not mission requirements. The values used in results are in `data/criteria.json` with a source note for each; no sourced values were found, so all of them are marked as assumed (`status: assumed`).
 
 ### Ghost landers
 1. Pass/fail is precomputed on a grid around the target (horizon mask -> visibility -> window metrics).
