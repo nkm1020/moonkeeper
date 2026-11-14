@@ -64,8 +64,10 @@ For the ghost-lander grid, the centre point (G0158) reproduces the im2 window me
 ## NHF horizons vs precise horizons
 NHF (neural horizon field, made by 용휘) predicts horizons much faster than the precise ray cast. We ran the same calculations on both.
 - Validation points (150, ground level): NHF-based long-term Sun visibility vs PGDA has RMSE 1.43 pp (precise: 1.42 pp); NHF vs precise differ by RMSE 0.48 pp (Sun) and 0.91 pp (Earth).
-- Ghost landers (im2, same 1,000 landers, all 97 passing dates, 1-hour Horizons data): on the 83 dates where the precise success probability is 0.9 or higher, NHF agrees within 5 percentage points on all of them. On the 14 riskier dates (precise probability below 0.9), 7 differ by more than 10 points (2028-02-05: 0.71 precise vs 0.28 NHF). NHF was never higher on any date, so it does not miss risky dates; it is more cautious. NHF horizons are on average 0.03 deg higher, which lengthens the longest dark period by about 1-2 hours; when many grid points sit near the 96-hour limit, that flips them.
-- Use: NHF for fast screening; precise horizons to confirm risky dates (success probability below about 0.9). File: `data/outputs/nhf_check.json`.
+- Ghost landers (im2, same 1,000 landers, all 97 passing dates, 1-hour Horizons data): on the 83 dates where the precise success probability is 0.9 or higher, NHF agrees within 5 percentage points on all of them. On the 14 riskier dates (precise probability below 0.9), 7 differ by more than 10 points (2028-02-05: 0.71 precise vs 0.28 NHF). NHF was never higher on any date here, because on this grid NHF horizons are on average 0.03 deg higher (0.028 deg, 용휘's check in `grid_horizons_im2_nhf.json`), which lengthens the longest dark period by about 1-2 hours; when many grid points sit near the 96-hour limit, that flips them.
+- This direction is not general: at the 150 validation points NHF horizons are on average 0.02 deg lower than precise. So NHF can also be optimistic, and the final call uses precise horizons.
+- Speed and agreement (용휘, same machine, `grid_horizons_im2_nhf.json` meta.check_vs_precise): 317 points in 0.21 s with NHF vs 82 s precise on 1 core (5.9 s on 32 cores); lit/not-lit calls agree on 99.5% of point-hours, Earth visible/not on 98.0%.
+- Use: NHF for fast screening; precise horizons for the final decision (screen ③ uses precise). File: `data/outputs/nhf_check.json`.
 
 ## Limitations
 - Ghost landers use the site's approach-lighting value for every grid point.
