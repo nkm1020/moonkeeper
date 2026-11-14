@@ -1,5 +1,5 @@
 {
-  "status": "partly_assumed",
+  "status": "assumed",
   "criteria": {
     "power_mean": {
       "metric": "sun_mean",
