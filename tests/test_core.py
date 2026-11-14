@@ -64,6 +64,12 @@ def test_rank_candidates():
     assert [x["rank"] for x in r] == [1, 2, 3, 4, 5]
     assert r[-1]["review_required"] and not r[0]["review_required"]
 
+def test_rank_candidates_float_tie():
+    # (0.8-0.5)/0.5 = 0.6000000000000001 must tie with 0.6, so the shorter wait wins
+    c = [dict(site="same", eligible=True, margin=(0.8 - 0.5) / 0.5, wait_days=17.0, distance_km=0.0),
+         dict(site="mp1", eligible=True, margin=0.6, wait_days=0.0, distance_km=83.0)]
+    assert [x["site"] for x in metrics.rank_candidates(c)] == ["mp1", "same"]
+
 def test_extra_metric_approach():
     met = {"sun_mean": np.array([[0.8]])}
     crit = {"p": ("sun_mean", "min", 0.5), "ap": ("approach", "min", 0.7)}

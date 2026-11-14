@@ -29,7 +29,7 @@
 | `rank` | 두 카드를 합친 추천 순서 (1이 1순위) |
 | `review_required` | 값이 빠진 후보에만 `true` (추가 검토 필요) |
 
-추천 순서 규칙 (Keev, "LUNAR MISSION – AI DECISION LOGIC"): 기준을 통과한 후보만 → 여유가 큰 순 → 기다리는 기간이 짧은 순 → 거리가 가까운 순. 두 후보가 모두 없으면 "통과하는 대안 없음".
+추천 순서 규칙 (Keev, `planb_rules.json`): 기준을 통과한 후보만 → 여유가 큰 순 → 여유가 같으면 기다리는 기간이 짧은 순 → 거리가 가까운 순. 여유는 소수 6자리에서 반올림해 비교해요. 두 카드 모두 후보가 없으면 Keev 규칙 문구 "No safe alternative found. Engineering review required."를 띄워요.
 
 ## `ghost_landers.json` → 화면 ③
 
