@@ -22,8 +22,14 @@
 
 | 필드 | 뜻 |
 | --- | --- |
-| `same_site_later_date` | 같은 곳에서 기다리기: `date`, `wait_days`, `margin` |
-| `same_date_other_sites` | 같은 날 다른 곳: `site`, `margin`, `distance_km` 목록 |
+| `delayed_date_passed` | 밀린 날짜에 원래 착륙지가 통과하는지 (`false`면 Plan B가 필요한 이유) |
+| `delayed_date_fail_causes` | 밀린 날짜의 실패 원인 `power`·`comm`·`approach` |
+| `same_site_later_date` | 카드 1 "같은 곳에서 기다리기": `date`, `wait_days`, `margin`, `rank` (없으면 `null`) |
+| `same_date_other_sites` | 카드 2 "같은 날 다른 곳": `site`, `margin`, `distance_km`, `rank` 목록 (그날 통과하는 곳 전부, `rank` 순) |
+| `rank` | 두 카드를 합친 추천 순서 (1이 1순위) |
+| `review_required` | 값이 빠진 후보에만 `true` (추가 검토 필요) |
+
+추천 순서 규칙 (Keev, "LUNAR MISSION – AI DECISION LOGIC"): 기준을 통과한 후보만 → 여유가 큰 순 → 기다리는 기간이 짧은 순 → 거리가 가까운 순. 두 후보가 모두 없으면 "통과하는 대안 없음".
 
 ## `ghost_landers.json` → 화면 ③
 
@@ -51,9 +57,30 @@
 | `summary.period_utc`, `n_times` | 비교 기간 (18.6년), 시각 수 |
 | `points` | 지점별 `point_id`, `lat_deg`, `lon_east_deg`, `ours_sun`, `pgda_sun`, `ours_earth`, `pgda_earth` |
 
-그림: `validation_pgda_sun.png`, `validation_pgda_earth.png` (산점도 + Bland-Altman). NHF 비교는 용휘님 검증 지평선이 오면 `data.nhf`로 추가할 예정이에요.
+| `summary.nhf_sun_vs_pgda`, `nhf_earth_vs_pgda` | NHF 지평선(용휘님)으로 계산한 값 vs PGDA (필드는 위와 같음) |
+| `summary.nhf_sun_vs_precise`, `nhf_earth_vs_precise` | NHF로 계산한 값 vs 정밀 지평선으로 계산한 값 |
+| `summary.nhf_horizon_error_deg` | 지점별 지평선 각도 차이(RMS, 도)의 요약: `median`, `p95`, `max`, `mean` |
+| `points[].nhf_sun`, `nhf_earth` | 지점별 NHF 계산 값 |
+
+그림: `validation_pgda_sun.png`, `validation_pgda_earth.png` (산점도 + Bland-Altman).
+
+## `nhf_check.json` → 화면 ③·④ 참고
+
+`data.ghost_landers_precise_vs_nhf`: 같은 착륙선 1,000대(같은 시드)를 정밀 지평선과 NHF 지평선에 각각 떨어뜨린 결과예요. im2가 통과하는 날짜 전부 (날짜별 한 줄).
+
+`data.summary`: `n_dates`, `within_5pp`(두 확률 차이가 5%p 이내인 날 수), `nhf_higher_by_over_1pp`(NHF가 1%p 넘게 높은 날 수), 정밀 확률 0.9 이상/미만으로 나눈 같은 집계.
+
+| 필드 | 뜻 |
+| --- | --- |
+| `landing_time_utc` | 착륙 시각 |
+| `site_margin` | 그날 im2 중심의 가장 작은 여유 (전력·교신) |
+| `p_precise`, `ci95_precise` | 정밀 지평선 성공 확률과 95% 범위 |
+| `p_nhf`, `ci95_nhf` | NHF 지평선 성공 확률과 95% 범위 |
+| `grid_points_same_result` | 격자 317곳 중 통과/실패가 같은 비율 |
+| `landers_same_result` | 1,000대 중 결과가 같은 비율 |
 
 ## 기타
 
 - `heatmap.png`, `ghost_landers_im2.png`: 확인용 그림
+- `ghost_landers.json`은 정밀 지평선(`grid_horizons_im2.json`) 결과예요
 - 기준값이 Keev 확정값이 아니면 `criteria_status`가 `provisional`이에요. `data/criteria.json`이 생기면 다시 계산해요.

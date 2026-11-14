@@ -1,9 +1,9 @@
 # Re-planning heatmap, ghost landers, and validation
 
-Part of MoonKeeper (calculation: 현지). Code in `pipeline/moonkeeper_b/` and `pipeline/run_*.py`; results in `data/outputs/` (fields: `data/outputs/README.md`).
+Part of MoonKeeper (calculation: 현지). 현지 set the direction, requested each check below and reviewed every setting; the code was drafted with AI assistance (Claude). Code in `pipeline/moonkeeper_b/` and `pipeline/run_*.py`; results in `data/outputs/` (fields: `data/outputs/README.md`).
 
 ## What this part does
-- **Re-planning heatmap**: for each landing site x landing date, checks whether power (sunlight), direct-to-Earth communication and approach-path lighting stay within limits for the mission duration, and how much margin is left. After a launch delay it lists "same site, later date" and "same date, other site" alternatives.
+- **Re-planning heatmap**: for each landing site x landing date, checks whether power (sunlight), direct-to-Earth communication and approach-path lighting stay within limits for the mission duration, and how much margin is left. After a launch delay it lists "same site, later date" and "same date, other site" alternatives, ranked by the Plan B rule (Keev): eligible candidates only, then higher margin, shorter waiting time, shorter distance; candidates with missing values are flagged for review.
 - **Ghost landers**: samples 1,000 landing points from the landing dispersion around a target and reports the probability that all criteria are met, with a 95% Wilson score interval and a breakdown of failure causes.
 - **Validation**: compares our geometry with JPL Horizons and our long-term solar visibility with the NASA PGDA illumination maps (Mazarico et al. 2011).
 
@@ -50,15 +50,23 @@ python pipeline/run_heatmap.py data/inputs                # heatmap.json, planb_
 python pipeline/run_ghost_landers.py --site im2 --landing 2028-02-05T12:00 \
     --grid data/points/grid_im2_r800_s80.csv --horizons data/inputs/grid_horizons_im2.json
 python pipeline/run_validation_pgda.py --points data/points/validation_points_n150_seed42.csv \
-    --horizons data/inputs/horizons_validation_n150_seed42.json --pgda data/derived/pgda_at_validation_points.csv \
+    --horizons data/inputs/horizons_validation_n150_seed42.json --nhf data/inputs/validation_horizons_nhf.json \
+    --pgda data/derived/pgda_at_validation_points.csv \
     --subpoints data/derived/subpoints_2010_2028_6h.npz
 ```
 Thresholds come from `data/criteria.json` (copy `data/criteria.template.json`); without it, outputs are marked provisional.
 Colab: open `notebooks/B_quickstart.ipynb` and run all cells.
 
 ## Cross-check with the site inputs
+- Sun/Earth series for ghost landers: the final results use 1-hour Horizons data for 2026-11-01 to 2028-12-31 (19,008 hours, `data/derived/subpoints_2026_2028_1h.npz`, fetched by 현지 in Colab). Early test runs used the 6-hour series filled in to 1 hour (cubic spline on direction vectors); against the 1-hour data the filled values differ by less than 0.000002 deg, and every ghost-lander result was identical. Notebook cell 4b repeats the filling check on the 6-hour series (errors below 0.0001 deg, far below the 0.27 deg solar radius).
 For two sites, Sun/Earth directions rebuilt from the Horizons sub-point series agree with the site files (Horizons topocentric) within 0.0007 deg (Sun) and 0.004 deg (Earth), and the resulting visibility flags match.
 For the ghost-lander grid, the centre point (G0158) reproduces the im2 window metrics in `heatmap.json`.
+
+## NHF horizons vs precise horizons
+NHF (neural horizon field, made by 용휘) predicts horizons much faster than the precise ray cast. We ran the same calculations on both.
+- Validation points (150, ground level): NHF-based long-term Sun visibility vs PGDA has RMSE 1.43 pp (precise: 1.42 pp); NHF vs precise differ by RMSE 0.48 pp (Sun) and 0.91 pp (Earth).
+- Ghost landers (im2, same 1,000 landers, all 97 passing dates, 1-hour Horizons data): on the 83 dates where the precise success probability is 0.9 or higher, NHF agrees within 5 percentage points on all of them. On the 14 riskier dates (precise probability below 0.9), 7 differ by more than 10 points (2028-02-05: 0.71 precise vs 0.28 NHF). NHF was never higher by more than 1 point, so it does not miss risky dates; it is more cautious. NHF horizons are on average 0.03 deg higher, which lengthens the longest dark period by about 1-2 hours; when many grid points sit near the 96-hour limit, that flips them.
+- Use: NHF for fast screening; precise horizons to confirm risky dates (success probability below about 0.9). File: `data/outputs/nhf_check.json`.
 
 ## Limitations
 - Ghost landers use the site's approach-lighting value for every grid point.

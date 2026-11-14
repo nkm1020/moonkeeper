@@ -51,6 +51,19 @@ def test_evaluate_and_plan_b():
     assert all(tab["passed"][r["site_idx"], d0] for r in pb["same_day"])
 
 
+
+def test_rank_candidates():
+    c = [dict(site="a", eligible=True, margin=0.2, wait_days=5.0, distance_km=0.0),
+         dict(site="b", eligible=True, margin=0.2, wait_days=0.0, distance_km=80.0),
+         dict(site="c", eligible=True, margin=0.2, wait_days=0.0, distance_km=30.0),
+         dict(site="d", eligible=False, margin=0.9, wait_days=0.0, distance_km=1.0),
+         dict(site="e", eligible=True, margin=0.5, wait_days=9.0, distance_km=None),
+         dict(site="f", eligible=True, margin=0.3, wait_days=9.0, distance_km=0.0)]
+    r = metrics.rank_candidates(c)
+    assert [x["site"] for x in r] == ["f", "c", "b", "a", "e"]
+    assert [x["rank"] for x in r] == [1, 2, 3, 4, 5]
+    assert r[-1]["review_required"] and not r[0]["review_required"]
+
 def test_extra_metric_approach():
     met = {"sun_mean": np.array([[0.8]])}
     crit = {"p": ("sun_mean", "min", 0.5), "ap": ("approach", "min", 0.7)}

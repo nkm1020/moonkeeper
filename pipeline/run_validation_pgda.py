@@ -70,11 +70,15 @@ if a.nhf:
     he = hz["horizon_el"][[pos_e[p] for p in common]]
     hn = np.array([np.interp(hz["az_deg"], np.r_[nhf["az_deg"], 360.0], np.r_[row, row[0]])
                    for row in nhf["horizon_el"][[pos_n[p] for p in common]]])
-    nhf_s, _ = long_term(nhf)
+    nhf_s, nhf_e = long_term(nhf)
+    res["nhf_horizon_layer"] = nhf["layer"]
     res["nhf_horizon_error_deg"] = stats.summarize(np.sqrt(np.mean((hn - he) ** 2, axis=1)))
     res["nhf_sun_vs_pgda"] = stats.agreement(pg_s, nhf_s)
-    for p, s in zip(points, nhf_s):
-        p["nhf_sun"] = s
+    res["nhf_earth_vs_pgda"] = stats.agreement(pg_e, nhf_e)
+    res["nhf_sun_vs_precise"] = stats.agreement(ours_s, nhf_s)
+    res["nhf_earth_vs_precise"] = stats.agreement(ours_e, nhf_e)
+    for p, s, e in zip(points, nhf_s, nhf_e):
+        p["nhf_sun"], p["nhf_earth"] = s, e
 
 out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
 fig, st = validation.plot_scatter_and_bland_altman(pg_s, ours_s, label="share of time Sun visible (any part)", ref_name="PGDA", our_name="Ours")

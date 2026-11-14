@@ -20,7 +20,6 @@ ap = argparse.ArgumentParser()
 ap.add_argument("input_dir")
 ap.add_argument("--duration-days", type=float, default=14.0)
 ap.add_argument("--delays", type=float, nargs="+", default=[1, 3, 7])
-ap.add_argument("--top", type=int, default=3)
 ap.add_argument("--criteria", default=str(ROOT / "data" / "criteria.json"))
 ap.add_argument("--out", default=str(ROOT / "data" / "outputs"))
 ap.add_argument("--exclude", nargs="*", default=[], help="site ids to leave out, e.g. --exclude crx")
@@ -75,17 +74,28 @@ for s in range(len(sites)):
             if dd is None or not valid[dd]:
                 continue
             ss = pb["same_site"]
+            cands = [] if ss is None else [dict(
+                type="same_site", eligible=True, margin=ss["margin"], wait_days=ss["wait_days"], distance_km=0.0,
+                out={"date": str(tab["landing_times"][ss["date_idx"]]), "wait_days": ss["wait_days"], "margin": ss["margin"]})]
+            cands += [dict(type="other_site", eligible=True, margin=r["margin"], wait_days=0.0, distance_km=r["distance_km"],
+                           out={"site": sites[r["site_idx"]], "margin": r["margin"], "distance_km": r["distance_km"]})
+                      for r in pb["same_day"]]
+            for c in metrics.rank_candidates(cands):   # rank across both card types
+                c["out"]["rank"] = c["rank"]
+                if c["review_required"]:
+                    c["out"]["review_required"] = True
             plans.append({
                 "from_site": sites[s], "from_date": str(tab["landing_times"][d]), "delay_days": delay,
                 "delayed_date": str(tab["landing_times"][dd]),
-                "same_site_later_date": None if ss is None else {
-                    "date": str(tab["landing_times"][ss["date_idx"]]), "wait_days": ss["wait_days"], "margin": ss["margin"]},
-                "same_date_other_sites": [{"site": sites[r["site_idx"]], "margin": r["margin"],
-                                           "distance_km": r["distance_km"]} for r in pb["same_day"][:a.top]],
+                "delayed_date_passed": bool(tab["passed"][s, dd]),
+                "delayed_date_fail_causes": tab["causes"][s, dd],
+                "same_site_later_date": cands[0]["out"] if ss is not None else None,
+                "same_date_other_sites": sorted((c["out"] for c in cands if c["type"] == "other_site"), key=lambda o: o["rank"]),
             })
 planb_meta = dict(meta_path=META, decimals=3, compact=True, dataset="real inputs; " + criteria_status,
                   delays_days=a.delays,
-                  ranking="same-date sites by margin (placeholder until the Plan B rule is set); top %d" % a.top)
+                  ranking=("rank: one order across both card types (same site later date, other sites on the delayed date): "
+                           "eligible only, margin high first, then waiting time, then distance (Plan B rule by Keev)"))
 io_utils.save_json(out / "planb_candidates.json", plans, **planb_meta)
 
 # console summary

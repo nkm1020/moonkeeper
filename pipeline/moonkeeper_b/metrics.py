@@ -147,3 +147,18 @@ def plan_b(table, site_idx, date_idx, delay_days, site_latlon=None, rank="margin
         rows.sort(key=lambda r: -r["margin"])
     res["same_day"] = rows
     return res
+
+
+def rank_candidates(cands):
+    """Plan B ranking rule (Keev): only eligible candidates, then margin (high first),
+    waiting time (short first), distance (short first). Missing values are flagged for review
+    and placed after the complete ones."""
+    keys = ("margin", "wait_days", "distance_km")
+    ok = [c for c in cands if c.get("eligible")]
+    for c in ok:
+        c["review_required"] = any(c.get(k) is None for k in keys)
+    ok.sort(key=lambda c: (c["review_required"], -(c["margin"] or 0), c["wait_days"] or 0, c["distance_km"] or 0))
+    for i, c in enumerate(ok, 1):
+        c["rank"] = i
+    return ok
+

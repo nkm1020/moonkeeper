@@ -1,8 +1,10 @@
 {
   "calc_si_usage": {
     "si_assisted_code": true,
-    "si_tools": ["Claude (Anthropic)"],
-    "scope": "Drafting Python code for re-planning metrics, landing-dispersion Monte Carlo and validation utilities. The team reviewed, ran and tested the code; all reported numbers come from our own runs."
+    "si_tools": [
+      "Claude (Anthropic)"
+    ],
+    "scope": "Hyunji (calculation) set the direction of this part, asked for each check (for example re-running the NHF comparison on every passing date and measuring the interpolation error), and reviewed and approved every setting. Claude (AI) drafted the Python code and carried out the analyses she requested. All reported numbers come from our own runs."
   },
   "calc_references": [
     "JPL Horizons System (DE441), https://ssd.jpl.nasa.gov/horizons/",
