@@ -5,6 +5,7 @@ earth_vis (any part of Earth's disc above the horizon) with the precise horizons
 (grid_horizons_im2.json) and with the NHF horizons (grid_horizons_im2_nhf.json), then reports how often
 they agree. Sun/Earth directions come from panorama_im2.json (IM-2 centre) and are re-projected into each
 point's own frame, as in the approach-path code of make_inputs.py. Disc radii are that file's period means.
+nhf_predict.py --grid stores the same report in grid_horizons_im2_nhf.json (meta.check_vs_precise.sun_earth_calls).
 Run:  python3 pipeline/nhf_decision_check.py [--save data/nhf/grid_sun_earth.npz]
 """
 import argparse
@@ -46,21 +47,21 @@ def calls(horizons, lat, lon, sun, earth, r_sun, r_earth):
     return sun_frac, earth_vis
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--save", type=Path, default=None, help="npz with sun_frac / earth_vis for both versions")
-    args = ap.parse_args()
+HOW = ("every hour of panorama_im2.json: the Sun/Earth directions at the IM-2 centre (JPL Horizons) re-projected "
+       "into each point's own frame; lit = sun_frac (visible share of the solar disc) >= 0.5, Earth visible = "
+       "any part of its disc above the horizon; disc radii = that file's period means; agreement = share of "
+       "point-hours with the same call")
+
+
+def compare(d, nhf_horizons):
+    """Sun/Earth calls with the precise horizons d["horizon_el"] (grid_horizons_im2.json data) and with
+    nhf_horizons (same points and azimuths). Returns the report and (sun_frac, earth_vis) of both versions."""
     p = json.loads((INP / "panorama_im2.json").read_text())["data"]
-    pre = json.loads((INP / "grid_horizons_im2.json").read_text())
-    nhf = json.loads((INP / "grid_horizons_im2_nhf.json").read_text())
-    assert pre["meta"]["method"] == "precise" and nhf["meta"]["method"] == "NHF"
-    assert pre["data"]["point_ids"] == nhf["data"]["point_ids"]
-    d = pre["data"]
     lat, lon = np.array(d["lat"]), np.array(d["lon_east"])
     sun, earth = direction_vectors(p, "sun"), direction_vectors(p, "earth")
     r_sun, r_earth = p["sun_radius_deg"], p["earth_radius_deg"]
     sf_p, ev_p = calls(d["horizon_el"], lat, lon, sun, earth, r_sun, r_earth)
-    sf_n, ev_n = calls(nhf["data"]["horizon_el"], lat, lon, sun, earth, r_sun, r_earth)
+    sf_n, ev_n = calls(nhf_horizons, lat, lon, sun, earth, r_sun, r_earth)
 
     # sanity check of the re-projection: the centre point with the precise horizon vs visibility.json
     v = json.loads((INP / "visibility.json").read_text())["data"]
@@ -70,6 +71,7 @@ def main():
 
     lit_agree = (sf_p >= 0.5) == (sf_n >= 0.5)
     report = {
+        "how": HOW,
         "points": len(lat), "hours": int(sf_p.shape[1]),
         "lit_call_agreement": round(float(lit_agree.mean()), 5),
         "earth_call_agreement": round(float((ev_p == ev_n).mean()), 5),
@@ -81,9 +83,21 @@ def main():
         "sanity_centre_vs_visibility_json": {"lit_call_agreement": round(centre_lit, 5),
                                              "earth_call_agreement": round(centre_earth, 5)},
     }
+    return report, (sf_p, ev_p, sf_n, ev_n)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--save", type=Path, default=None, help="npz with sun_frac / earth_vis for both versions")
+    args = ap.parse_args()
+    pre = json.loads((INP / "grid_horizons_im2.json").read_text())
+    nhf = json.loads((INP / "grid_horizons_im2_nhf.json").read_text())
+    assert pre["meta"]["method"] == "precise" and nhf["meta"]["method"] == "NHF"
+    assert pre["data"]["point_ids"] == nhf["data"]["point_ids"]
+    report, (sf_p, ev_p, sf_n, ev_n) = compare(pre["data"], nhf["data"]["horizon_el"])
     print(json.dumps(report, indent=1, ensure_ascii=False))
     if args.save:
-        np.savez_compressed(args.save, point_ids=np.array(d["point_ids"]), sun_frac_precise=sf_p,
+        np.savez_compressed(args.save, point_ids=np.array(pre["data"]["point_ids"]), sun_frac_precise=sf_p,
                             earth_vis_precise=ev_p, sun_frac_nhf=sf_n, earth_vis_nhf=ev_n)
 
 

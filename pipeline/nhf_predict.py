@@ -2,6 +2,9 @@
 
   --grid        data/inputs/grid_horizons_im2_nhf.json: the 317 IM-2 grid points, 2 m, 1 deg, meta.method = "NHF",
                 same layout as the precise grid_horizons_im2.json (make_grid_horizons.py), which is only read here.
+                meta.check_vs_precise also holds the time of the precise ray casting, rerun here on the same
+                machine with 1 and --precise-workers processes (Linux only), and the Sun/Earth calls with both
+                versions (nhf_decision_check.py).
   --validation  data/inputs/validation_horizons_nhf.json: the 150 validation points, 0 m and 2 m, 0.5 deg,
                 same layout as 강민's horizons_validation_n150_seed42.json (horizon_el = 2 m, horizon_el_0m = 0 m),
                 plus the error against that file: totals in meta.check_vs_precise, per point in data.err_vs_precise.
@@ -10,6 +13,9 @@ Run:  python3 pipeline/nhf_predict.py data/nhf/nhf_b.pt --grid --validation
 """
 import argparse
 import json
+import multiprocessing as mp
+import os
+import platform
 import sys
 import time
 from datetime import datetime, timezone
@@ -19,6 +25,7 @@ import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import nhf_decision_check as dc  # noqa: E402
 import nhf_model as nm  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -93,18 +100,66 @@ def model_meta(ckpt, model, extra):
     }
 
 
-def write_grid(model, mm, dev):
+def cpu_name():
+    try:
+        with open("/proc/cpuinfo") as fh:
+            for line in fh:
+                if line.startswith("model name"):
+                    return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    return platform.processor() or platform.machine()
+
+
+def time_precise(d, workers):
+    """Rerun the precise ray casting of make_grid_horizons.py for the grid points with 1 and `workers` processes
+    (forked, sharing the DEMs already loaded for the NHF features) and time each run.
+    Returns {"1_process": s, "<workers>_processes": s} and the largest |rerun - precise file| (deg)."""
+    import make_grid_horizons as mg
+    assert nm._TER is not None, "load the DEMs (an NHF prediction) first"
+    mg._TER = nm._TER
+    pts = list(zip(d["lat"], d["lon_east"]))
+    ref = np.asarray(d["horizon_el"], float)
+    secs, diff = {}, 0.0
+    for n in (1, workers):
+        t0 = time.perf_counter()
+        with mp.get_context("fork").Pool(n) as pool:
+            res = pool.map(mg._horizon, pts, chunksize=2)
+        secs["1_process" if n == 1 else f"{n}_processes"] = round(time.perf_counter() - t0, 1)
+        diff = max(diff, float(np.abs(np.round([m for _, _, m in res], 3) - ref).max()))
+    return secs, round(diff, 4)
+
+
+def write_grid(model, mm, dev, precise_workers):
     pre = json.loads(GRID_PRECISE.read_text())
     assert pre["meta"]["method"] == "precise", f"{GRID_PRECISE.name} is not the precise version"
     d = pre["data"]
     out, ms = predict(model, d["lat"], d["lon_east"], d["az_step_deg"])
     hz = out[2.0]
+    check = {"file": GRID_PRECISE.name,
+             "error": "abs_err_deg = |NHF - precise| over all points x azimuths; bias_deg = mean of NHF - precise",
+             "abs_err_deg": err_stats(hz, d["horizon_el"]),
+             "bias_deg": r4((hz - np.asarray(d["horizon_el"], float)).mean()),
+             "nhf_ms_for_all_points": round(ms, 1), "device": dev}
+    if sys.platform.startswith("linux"):
+        secs, diff = time_precise(d, precise_workers)
+        check["precise_s_for_all_points"] = secs
+        check["precise_s_over_nhf_s"] = {k: round(v * 1000 / ms) for k, v in secs.items()}
+        check["timing"] = {
+            "what": f"wall time for all {len(d['point_ids'])} points, measured in the same run on one machine "
+                    "with the DEMs (and the network) already in memory",
+            "nhf": "terrain features sampled from the DEMs on the CPU (1 process) + network on the GPU",
+            "precise": "the ray casting of make_grid_horizons.py on the CPU, rerun here",
+            "precise_rerun_max_abs_diff_deg": diff,
+            "cpu": f"{cpu_name()} ({os.cpu_count()} logical cores)",
+            "gpu": torch.cuda.get_device_name(dev) if dev.startswith("cuda") else None,
+        }
+    check["sun_earth_calls"] = dc.compare(d, hz)[0]
     meta = dict(pre["meta"], file=GRID_NHF.name, generated_utc=now(), method="NHF", method_note=METHOD_NOTE)
     meta["nhf"] = mm
-    meta["check_vs_precise"] = {"file": GRID_PRECISE.name, "abs_err_deg": err_stats(hz, d["horizon_el"]),
-                                "nhf_ms_for_all_points": round(ms, 1), "device": dev}
+    meta["check_vs_precise"] = check
     write_json(GRID_NHF, {"meta": meta, "data": dict(d, horizon_el=hz.tolist())})
-    return meta["check_vs_precise"]
+    return check
 
 
 def write_validation(model, mm, dev):
@@ -146,6 +201,7 @@ def main():
     ap.add_argument("--grid", action="store_true")
     ap.add_argument("--validation", action="store_true")
     ap.add_argument("--gpu", type=int, default=0)
+    ap.add_argument("--precise-workers", type=int, default=32, help="processes for the timed precise rerun")
     args = ap.parse_args()
     dev = f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu"
     model, extra = nm.load_checkpoint(args.checkpoint, dev)
@@ -153,7 +209,7 @@ def main():
     mm = model_meta(args.checkpoint, model, extra)
     report = {}
     if args.grid:
-        report["grid"] = write_grid(model, mm, dev)
+        report["grid"] = write_grid(model, mm, dev, args.precise_workers)
     if args.validation:
         report["validation"] = write_validation(model, mm, dev)
     print(json.dumps(report, indent=1, ensure_ascii=False))
