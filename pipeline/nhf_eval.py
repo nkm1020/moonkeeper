@@ -77,7 +77,9 @@ def main():
 
     results = []
     if args.grid:
-        d = json.loads((INP / "grid_horizons_im2.json").read_text())["data"]
+        g = json.loads((INP / "grid_horizons_im2.json").read_text())
+        assert g["meta"]["method"] == "precise", "grid_horizons_im2.json must be the precise version"
+        d = g["data"]
         results.append(check(model, "grid_im2", d["point_ids"], np.array(d["lat"]), np.array(d["lon_east"]), 2.0,
                              d["az_step_deg"], np.array(d["horizon_el"]), args.oracle))
     if args.validation:

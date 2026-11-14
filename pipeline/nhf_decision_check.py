@@ -2,7 +2,7 @@
 
 For the 317 grid points and all 19,008 hours, computes sun_frac (visible fraction of the solar disc) and
 earth_vis (any part of Earth's disc above the horizon) with the precise horizons
-(grid_horizons_im2_precise.json) and with the NHF horizons (grid_horizons_im2.json), then reports how often
+(grid_horizons_im2.json) and with the NHF horizons (grid_horizons_im2_nhf.json), then reports how often
 they agree. Sun/Earth directions come from panorama_im2.json (IM-2 centre) and are re-projected into each
 point's own frame, as in the approach-path code of make_inputs.py. Disc radii are that file's period means.
 Run:  python3 pipeline/nhf_decision_check.py [--save data/nhf/grid_sun_earth.npz]
@@ -51,9 +51,10 @@ def main():
     ap.add_argument("--save", type=Path, default=None, help="npz with sun_frac / earth_vis for both versions")
     args = ap.parse_args()
     p = json.loads((INP / "panorama_im2.json").read_text())["data"]
-    pre = json.loads((INP / "grid_horizons_im2_precise.json").read_text())
-    nhf = json.loads((INP / "grid_horizons_im2.json").read_text())
-    assert nhf["meta"]["method"] == "NHF" and pre["data"]["point_ids"] == nhf["data"]["point_ids"]
+    pre = json.loads((INP / "grid_horizons_im2.json").read_text())
+    nhf = json.loads((INP / "grid_horizons_im2_nhf.json").read_text())
+    assert pre["meta"]["method"] == "precise" and nhf["meta"]["method"] == "NHF"
+    assert pre["data"]["point_ids"] == nhf["data"]["point_ids"]
     d = pre["data"]
     lat, lon = np.array(d["lat"]), np.array(d["lon_east"])
     sun, earth = direction_vectors(p, "sun"), direction_vectors(p, "earth")
