@@ -76,6 +76,7 @@ Space Apps 규정상 AI 사용을 밝혀야 해요. 쓴 사람이 한 줄씩 추
 
 - 강민: `pipeline/` 입력 파일 계산 코드와 이 레포 뼈대를 Claude Code로 작성 (대회 중)
 - 용휘: `pipeline/make_grid_horizons.py`와 `pipeline/nhf_*.py` (그리드 정밀 지평선, NHF 학습·추론 코드)를 Claude Code로 작성 (대회 중)
+- 현지: `pipeline/moonkeeper_b/`, `pipeline/run_*.py`와 노트북 (히트맵·Plan B·유령 착륙선·검증 계산 코드)을 Claude로 작성 (대회 중)
 
 ---
 
