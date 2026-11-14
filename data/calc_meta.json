@@ -1,0 +1,11 @@
+{
+  "calc_si_usage": {
+    "si_assisted_code": true,
+    "si_tools": ["Claude (Anthropic)"],
+    "scope": "Drafting Python code for re-planning metrics, landing-dispersion Monte Carlo and validation utilities. The team reviewed, ran and tested the code; all reported numbers come from our own runs."
+  },
+  "calc_references": [
+    "JPL Horizons System (DE441), https://ssd.jpl.nasa.gov/horizons/",
+    "Mazarico et al. (2011), Icarus 211, 1066-1081: LOLA polar illumination maps, NASA PGDA, https://pgda.gsfc.nasa.gov/products/69"
+  ]
+}

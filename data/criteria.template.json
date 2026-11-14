@@ -1,0 +1,12 @@
+{
+  "status": "fill in values from the criteria research; mark unsourced values as assumption",
+  "criteria": {
+    "power_mean": {"metric": "sun_mean",           "kind": "min", "limit": 0.50, "unit": "fraction", "source": "assumption"},
+    "power_dark": {"metric": "longest_dark_h",     "kind": "max", "limit": 96,   "unit": "hours",    "source": "assumption"},
+    "comm_frac":  {"metric": "comm_frac",          "kind": "min", "limit": 0.40, "unit": "fraction", "source": "assumption"},
+    "comm_gap":   {"metric": "longest_comm_gap_h", "kind": "max", "limit": 240,  "unit": "hours",    "source": "assumption"},
+    "approach":   {"metric": "approach",           "kind": "min", "limit": 0.50, "unit": "fraction", "source": "assumption"}
+  },
+  "mission_duration_days": 14,
+  "landing_error_m": {"sigma_along": 100, "sigma_cross": 100, "source": "assumption"}
+}
