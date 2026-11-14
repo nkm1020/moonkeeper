@@ -75,6 +75,7 @@ python3 pipeline/write_project_meta.py  # → data/project_meta.json
 Space Apps 규정상 AI 사용을 밝혀야 해요. 쓴 사람이 한 줄씩 추가해 주세요.
 
 - 강민: `pipeline/` 입력 파일 계산 코드와 이 레포 뼈대를 Claude Code로 작성 (대회 중)
+- 용휘: `pipeline/make_grid_horizons.py`와 `pipeline/nhf_*.py` (그리드 정밀 지평선, NHF 학습·추론 코드)를 Claude Code로 작성 (대회 중)
 
 ---
 
