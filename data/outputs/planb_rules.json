@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "project": "Moonkeeper",
+    "author": "Keev",
+    "status": "decision_rules_draft",
+    "description": "Plan B recommendation ranking rules"
+  },
+  "data": {
+    "ranking_priorities": [
+      {
+        "criterion": "safety",
+        "priority": 1,
+        "direction": "must_pass",
+        "rule": "Only candidates satisfying all engineering-defined safety requirements are eligible."
+      },
+      {
+        "criterion": "safety_margin",
+        "priority": 2,
+        "direction": "higher_is_better",
+        "rule": "Prefer the candidate with the higher safety margin."
+      },
+      {
+        "criterion": "waiting_time",
+        "priority": 3,
+        "direction": "lower_is_better",
+        "rule": "If safety margins are equal, prefer the shorter waiting time."
+      },
+      {
+        "criterion": "distance",
+        "priority": 4,
+        "direction": "lower_is_better",
+        "rule": "If the previous criteria are equal, prefer the shorter distance."
+      }
+    ],
+    "eligibility": {
+      "missing_data": "Needs engineering review.",
+      "invalid_data": "Needs engineering review.",
+      "safety_failure": "Reject the candidate."
+    },
+    "no_safe_candidate": {
+      "status": "no_safe_alternative",
+      "message": "No safe alternative found. Engineering review required."
+    },
+    "explanation_template": "This candidate was selected because it passed the required safety checks and ranked best according to safety margin, waiting time, and distance.",
+    "notes": [
+      "Safety is the highest priority.",
+      "Numerical safety thresholds must be confirmed by the engineering team.",
+      "Dummy data is for format testing only and must not be treated as real mission data.",
+      "These are recommendation rules, not engineering calculations."
+    ]
+  }
+}
