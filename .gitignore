@@ -19,3 +19,6 @@ venv/
 .vscode/
 .idea/
 .claude/
+
+# NHF training data and checkpoints (large, rebuilt by pipeline/nhf_*.py)
+data/nhf/
