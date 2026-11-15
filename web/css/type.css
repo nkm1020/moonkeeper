@@ -1,16 +1,11 @@
-/* Display type. English: Instrument Serif for every headline, card title and large number, as on our first screens
-   and the report figures. Korean keeps the sans it had (Noto Sans KR at the weights of style.css).
-   Colours, tabs, chips, body text and data lines are untouched. Loaded last. */
-:root { --serif: "Instrument Serif", Georgia, "Times New Roman", serif; }
-:root:lang(en) { --fs-display: clamp(45px, 5.8vw, 84px); }
-:lang(en) :is(.s3-caption h1, #mk-warp p, .s3-lead, .ex-below-h, .rp-below h2,
-  .pm-rank h2, .pm-pt h3, .ex-card h2, .dc-title, .dc-cond h3, .dc-succ h3, .rp-ct,
-  .s3-metrics dd, .ex-big dd, .ex-stat b, .dc-p-num, .dc-p-ci b, .gh-big, .gh-c-n dd, .rp-cn b, .pm-date) {
-  font-family: var(--serif); font-weight: 400; letter-spacing: -0.01em; font-size-adjust: 0.5;
-}
-:lang(en) :is(.s3-caption h1, #mk-warp p) { font-size-adjust: none; line-height: 0.98; letter-spacing: -0.012em; }
+/* Type. English: one family for everything, Instrument Serif, as on our first screens and the report figures:
+   top bar, tabs, headlines, cards, chips, buttons and body text. The font has one weight, so bold is not faked
+   (font-synthesis: none) and the size is matched to the old x-height (font-size-adjust).
+   Korean keeps the sans it had (Noto Sans KR at the weights of style.css). The burned-in data lines stay monospace.
+   Colours are untouched. Loaded last. */
+:root:lang(en) { --font: "Instrument Serif", "Noto Sans KR", Georgia, "Times New Roman", serif; }
+:lang(en) body { font-synthesis: none; font-size-adjust: 0.57; }
+:lang(en) :is(.s3-caption h1, #mk-warp p) { line-height: 0.98; letter-spacing: -0.012em; }
 :lang(en) .s3-lead { letter-spacing: 0; line-height: 1.2; }
-:lang(en) .pm-date small { font-size-adjust: none; }
-:lang(en) :is(.pm-rank h2, .pm-pt h3) { font-size: 22px; line-height: 24px; font-size-adjust: none; }
-:lang(en) :is(.dc-cond h3, .dc-succ h3) { font-size: clamp(24px, 2vw, 30px); font-size-adjust: none; }
-:lang(en) .pm-date { font-size: clamp(22px, 1.9vw, 28px); font-size-adjust: none; }
+:lang(en) :is(.logo, .steps a, .dc-title, .pm-date, .s3-metrics dd, .ex-big dd, .ex-stat b, .dc-p-num, .gh-big, .gh-c-n dd, .rp-cn b) { letter-spacing: -0.01em; }
+:lang(en) :is(.s3-meta, .rp-tag span) { font-size-adjust: none; }
