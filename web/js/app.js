@@ -4,7 +4,8 @@
 // 화면 파일 규칙 (screens/*.js의 export default):
 //   id, num, label            단계 표시 (글자는 i18n.js의 'step.<id>'가 있으면 그걸 써요)
 //   render(el, ctx)           처음 그릴 때. ctx = { state, set, use, missing }
-//   update(state, changed)    (선택) 같은 화면에서 상태만 바뀔 때. 없으면 render를 다시 불러요.
+//   update(state, changed)    (선택) 같은 화면에서 상태만 바뀔 때. 없으면 render를 다시 불러요. 'rerender'를 돌려주면 다시 그려요.
+//   unmount()                 (선택) 다른 화면으로 갈 때 정리 (렌더 루프 멈추기 등)
 //   ownTitle: true            (선택) 화면이 h1을 직접 그려요. 없으면 뼈대가 "① 하늘 파노라마"를 h1로 달아요.
 
 import * as store from './state.js';
@@ -82,6 +83,7 @@ async function render(s) {
   const id = ++renderId;
   const i = current(s);
   const sc = SCREENS[i];
+  if (mounted && mounted.sc.unmount) mounted.sc.unmount();   // stop the old screen (a 3D scene keeps a render loop)
   mounted = null;
   renderNav(i);
   document.title = `Moonkeeper · ${label(sc)}`;
@@ -121,8 +123,8 @@ async function render(s) {
 function onState(s, changed) {
   if (changed && !changed.step && mounted && mounted.sc.update) {
     renderNav(current(s));
-    mounted.sc.update(s, changed);
-    return;
+    // a screen can ask for a fresh render, e.g. the sky switching between its 3D scene and the 2D panorama
+    if (mounted.sc.update(s, changed) !== 'rerender') return;
   }
   if (changed && changed.step) window.scrollTo(0, 0);
   render(s);
