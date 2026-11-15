@@ -8,15 +8,16 @@
 //
 // subscribe(f) → f(state, changed). changed는 바뀐 키 목록이에요 (예: { time: true }).
 
-const KEYS = ['step', 'site', 'time', 'delay', 'planb'];
+const KEYS = ['step', 'site', 'time', 'delay', 'planb', 'transit'];   // transit: days from launch to landing (01 shows the launch date)
 const subs = new Set();
 let state = read();
 
 function read() {
   const p = new URLSearchParams(location.hash.slice(1));
-  const s = { step: 'sky', site: null, time: null, delay: null, planb: null };
+  const s = { step: 'sky', site: null, time: null, delay: null, planb: null, transit: null };
   for (const k of KEYS) if (p.has(k)) s[k] = p.get(k);
   if (s.delay !== null) s.delay = Number(s.delay);
+  if (s.transit !== null) s.transit = Number(s.transit);
   return s;
 }
 

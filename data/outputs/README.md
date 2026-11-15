@@ -113,3 +113,15 @@
 | `fail[site]` | 시각마다 한 글자: `0` 통과, 아니면 1 전력 + 2 교신 + 4 접근로 |
 
 접근로 값은 하루에 한 번(12:00 착륙)만 있어서 그 날짜의 값을 써요. 12:00 UTC의 판정은 `heatmap.json`과 6,224칸 모두 같아요(`meta.check`).
+
+## `landing_success_hourly.json` → 화면 ①·③ (강민)
+
+`landing_success.json`과 같은 오차 시험을 매시간 착륙에 대해 한 표예요: `pipeline/run_landing_success_hourly.py`. 화면 ①·③에서 12:00 UTC가 아닌 착륙 시각을 고르면 이 파일을 읽어요.
+
+| 필드 | 뜻 |
+| --- | --- |
+| `t0_utc`, `step_h`, `n_hours` | h번째 값 = `t0_utc` + h시간에 착륙 |
+| `k[site][h]` | 모의 착륙선 `n`대(1,000대) 중 기준을 지키는 대수 |
+| `ci95_low_by_k`, `ci95_high_by_k` | k(0~1000)마다의 Wilson 95% 구간 |
+
+접근로 값과 접근 방향은 하루에 한 번(12:00 착륙)만 있어서 그 날짜의 값을 써요. 12:00 UTC의 값은 `landing_success.json`과 모두 같아요(`meta.check`).

@@ -466,7 +466,11 @@ input[type="range"]::-moz-range-thumb { background: var(--lime); }
 .pm-rank .pm-pt .go:hover { background: #2a323b; }
 .pm-pick { position: absolute; left: 0; top: 0; margin: 12px 0 0 12px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 4px 4px 8px; border-radius: 7px; background: var(--card); color: var(--card-ink); font: 700 11px/1 var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pm-pick[hidden] { display: none; }
-.pm-when { display: grid; gap: 8px; }
+.pm-when { display: grid; gap: 7px; }
+.pm-launch { display: inline-flex; align-items: center; gap: 6px; font: 600 12px/1 var(--font); color: var(--muted); white-space: nowrap; }
+.pm-launch input { width: 3.4em; padding: 2px 4px; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 6px; background: #171c22; color: var(--text); font: 700 12px/1.2 var(--font); text-align: right; font-variant-numeric: tabular-nums; color-scheme: dark; }
+.pm-launch input:focus { outline: none; border-color: var(--lime); }
+.pm-site span b { margin-left: 6px; font-weight: 500; opacity: 0.78; font-variant-numeric: tabular-nums; }
 button.pm-date { padding: 0; border: 0; background: none; color: var(--text); text-align: left; cursor: text; }
 button.pm-date[hidden], .pm-date-in[hidden] { display: none; }
 button.pm-date:hover { text-decoration: underline dotted; text-underline-offset: 5px; text-decoration-thickness: 1px; }
@@ -505,3 +509,9 @@ button.pm-date:hover { text-decoration: underline dotted; text-underline-offset:
 .s3.photo:not(.pm) .s3-caption, .s3.photo:not(.pm) .s3-pick, .s3.photo:not(.pm) .s3-metrics { animation: mk-rise 900ms 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 @keyframes mk-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .s3-stage.arrive canvas, .s3.photo:not(.pm) .s3-caption, .s3.photo:not(.pm) .s3-pick, .s3.photo:not(.pm) .s3-metrics { animation: none; } }
+
+/* 02 and 05 when the reader chose another landing hour than 12:00 UTC on 01 */
+.hour-note { margin: 0; padding: 9px var(--edge); background: #171c22; color: var(--lime); font: 600 13px/1.4 var(--font); }
+/* the longer first tab ("Where & when"): tighter steps between the two-row breakpoint and wide screens, so the language switch stays on screen */
+@media (min-width: 1101px) and (max-width: 1460px) { .steps li + li::before { width: 8px; margin: 0 5px; } .steps a { padding: 0.3em 0.55em; } .bar { gap: 14px; } .logo { padding-right: 14px; } }
+@media (min-width: 901px) and (max-width: 1180px) { .pm-bar { gap: 14px; grid-template-columns: auto auto auto minmax(120px, 1fr) auto auto; } }

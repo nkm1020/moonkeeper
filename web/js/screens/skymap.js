@@ -20,6 +20,8 @@ addStrings({
     'pm.sub.slip': 'It still passes if the landing slips by up to {d} days, to {end}.', 'pm.sub.slip1': 'It still passes if the landing slips by 1 day, to {end}.', 'pm.sub.slip0': 'A slip of one day fails there.',
     'pm.sub.p': 'If the touchdown point scatters, {p} of {n} landers still meet the criteria there (95% {lo}–{hi}).',
     'pm.sub.safer': 'Most tolerant of landing error among the passing sites: {id} ({p}).',
+    'pm.launch': 'Launch {date}', 'pm.transit': 'd transit', 'pm.crumb.launch': 'Launch {date} ({n}-day transit)',
+    'pm.transit.tip': 'Days from launch to landing: your mission\'s value. IM-1 took about 7 days, Blue Ghost Mission 1 about 45. Launch date = landing date minus this.',
     'pm.date.edit': 'Type the landing date and hour (UTC). Site verdicts are computed for every hour; the map colours and the scatter test are computed for 12:00 UTC landings.',
     'pm.sub.next': 'The next passing landing is {site} on {date}.', 'pm.sub.nonext': 'No later date passes in the data.',
     'pm.sub.hint': 'Click any ground to read that point',
@@ -53,6 +55,8 @@ addStrings({
     'pm.sub.slip': '착륙이 {d}일까지 밀려도({end}까지) 계속 통과해요.', 'pm.sub.slip1': '착륙이 하루 밀려도({end}) 통과해요.', 'pm.sub.slip0': '하루만 밀려도 거기는 실패해요.',
     'pm.sub.p': '착륙 지점이 흩어져도 거기서 기준을 지키는 비율: 모의 착륙선 {n}대 중 {p} (95% {lo}–{hi}).',
     'pm.sub.safer': '통과하는 곳 중 착륙 오차에 가장 강한 곳: {id} ({p}).',
+    'pm.launch': '발사 {date}', 'pm.transit': '일 비행', 'pm.crumb.launch': '발사 {date} (비행 {n}일)',
+    'pm.transit.tip': '발사에서 착륙까지 걸리는 날수예요. 임무에 맞게 넣어 주세요. IM-1은 약 7일, Blue Ghost Mission 1은 약 45일이었어요. 발사 날짜 = 착륙 날짜 − 이 값.',
     'pm.date.edit': '착륙 날짜와 시각(UTC)을 직접 입력해요. 착륙지 판정은 매시간 계산했고, 지도 색과 오차 시험은 12:00 UTC 착륙 기준이에요.',
     'pm.sub.next': '다음으로 통과하는 착륙: {date}, {site}.', 'pm.sub.nonext': '데이터 안에 그 뒤로 통과하는 날짜가 없어요.',
     'pm.sub.hint': '땅 아무 곳이나 누르면 그 지점을 읽어 줘요',
@@ -87,7 +91,7 @@ let renderer, scene, camera, controls, mat, lightScene, lightCam, lightMat, ligh
 let heights, HN, atlas = [], sites = [], rim = {};
 let jf = 16, shownJ = -1, playing = false, dragging = false, why = false, selected = null;
 let raf = 0, last = 0, dirty = true, lightDirty = true, alive = false, onResize, onKey, setTimer = 0;
-let hOff = 0, HH = null, hhAsked = false;   // landing hour relative to 12:00 UTC (-12..11); HH: outputs/heatmap_hourly.json, read when another hour is chosen
+let hOff = 0, HH = null, LSH = null, hhAsked = false;   // LSH: outputs/landing_success_hourly.json   // landing hour relative to 12:00 UTC (-12..11); HH: outputs/heatmap_hourly.json, read when another hour is chosen
 let mesh = null, pick = null, pickSeq = 0, bestMapJ = 0;   // pick: the ground the reader clicked { x, y, lat, lon, pw, cm, ... }
 let fly = null;   // the flight between the map and one site: { t0, dur, out, pA, qA, pB, qB, res }
 const HOME = { pos: [0, 430, 470], target: [0, -4, 6] }, FOV = 30;
@@ -311,7 +315,7 @@ function shell() {
     <section class="s3 photo pm" aria-label="${esc(t('pm.h1'))}">
       <div class="s3-stage" id="pm-stage"></div>
       <div class="pm-labels" id="pm-labels"></div>
-      <div class="s3-caption pm-caption"><p class="s3-crumb"><b>${esc(t('pm.crumb.map'))}</b><i>/</i><span id="pm-crumb-date"></span></p><h1>${esc(t('pm.h1'))}</h1><p class="s3-lead" id="pm-ans"></p><p class="s3-sub" id="pm-sub"></p></div>
+      <div class="s3-caption pm-caption"><p class="s3-crumb"><b>${esc(t('pm.crumb.map'))}</b><i>/</i><span id="pm-crumb-date"></span><i>/</i><span id="pm-crumb-launch"></span></p><h1>${esc(t('pm.h1'))}</h1><p class="s3-lead" id="pm-ans"></p><p class="s3-sub" id="pm-sub"></p></div>
       <aside class="pm-rank" aria-label="${esc(t('pm.rank'))}"><h2>${esc(t('pm.rank'))}</h2><ol id="pm-rank"></ol><p>${esc(t('pm.rank.note'))}</p><div class="pm-pt" id="pm-pt" hidden></div></aside>
       <ul class="pm-legend">
         <li><i class="pm-sw ok"></i>${esc(t('pm.legend.pass'))} <span>${esc(t('pm.legend.more'))}</span></li>
@@ -325,7 +329,7 @@ function shell() {
     </section>
     <section class="s3-bar pm-bar" aria-label="${esc(t('pm.strip'))}">
       <div class="s3-ctl"><button class="s3-play" id="pm-play" type="button" aria-label="${esc(t('pm.play'))}"><svg viewBox="0 0 12 12" aria-hidden="true"><path id="pm-play-icon" d="M2 0 L12 6 L2 12 Z"/></svg></button></div>
-      <div class="pm-when"><button type="button" class="pm-date num" id="pm-date" title="${esc(t('pm.date.edit'))}"></button><input type="datetime-local" step="3600" class="pm-date-in" id="pm-date-in" hidden min="${isoOf(0).slice(0, 10)}T00:00" max="${isoOf(NV() - 1).slice(0, 10)}T23:00" aria-label="${esc(t('pm.date.edit'))}"><button class="pm-best" id="pm-best" type="button"></button></div>
+      <div class="pm-when"><button type="button" class="pm-date num" id="pm-date" title="${esc(t('pm.date.edit'))}"></button><input type="datetime-local" step="3600" class="pm-date-in" id="pm-date-in" hidden min="${isoOf(0).slice(0, 10)}T00:00" max="${isoOf(NV() - 1).slice(0, 10)}T23:00" aria-label="${esc(t('pm.date.edit'))}"><label class="pm-launch" title="${esc(t('pm.transit.tip'))}"><span id="pm-launch"></span><input type="number" id="pm-transit" min="0" max="400" step="1" inputmode="numeric"><span>${esc(t('pm.transit'))}</span></label><button class="pm-best" id="pm-best" type="button"></button></div>
       <p class="s3-film-labs pm-strip-labs" aria-hidden="true"><span id="pm-strip-top">${esc(t('pm.strip.map'))}</span><span>${esc(t('pm.strip.sites'))}</span></p>
       <div class="pm-strip" id="pm-strip-wrap" role="slider" tabindex="0" aria-label="${esc(t('pm.strip'))}" aria-valuemin="0" aria-valuemax="${NV() - 1}">
         <canvas id="pm-strip"></canvas><i class="s3-film-now" id="pm-now"></i>
@@ -365,7 +369,12 @@ function verdict(i, j) {
   if (m === null || m === undefined || p === null) return { k: 'nc', m: null, cause: '' };
   return { k: p ? 'ok' : 'fail', m, cause: p ? '' : String(d.fail_causes[i][j] || '').split(',')[0] };
 }
+const transitDays = () => { const v = ctx.state.transit; return Number.isFinite(v) && v >= 0 ? v : 7; };
 function succ(i, j) {   // share of scattered landers that still meet the criteria at site i on date j, or null
+  if (hOff !== 0 && LSH) {   // another hour than 12:00: the hourly scatter test
+    const e = LSH.data, s = e.site_ids.indexOf(HM.data.site_ids[i]), h = j * 24 + 12 + hOff, k = s < 0 || h < 0 || h >= e.n_hours ? null : e.k[s][h];
+    return typeof k === 'number' ? { p: k / e.n, lo: e.ci95_low_by_k[k], hi: e.ci95_high_by_k[k], n: e.n, hourly: true } : null;
+  }
   const d = LS && LS.data; if (!d) return null;
   const k = d.site_ids.indexOf(HM.data.site_ids[i]), p = k < 0 ? null : d.p[k][j];
   return typeof p === 'number' ? { p, lo: d.ci95_low[k][j], hi: d.ci95_high[k][j], n: d.n } : null;
@@ -373,10 +382,17 @@ function succ(i, j) {   // share of scattered landers that still meet the criter
 const pct = (v) => Math.round(v * 100) + '%';
 function refreshDate() {
   const j = Math.max(0, Math.min(NV() - 1, Math.round(jf)));
-  if (hOff !== 0 && !HH && !hhAsked) { hhAsked = true; ctx.use('outputs/heatmap_hourly.json').then((f) => { if (f && f.data && f.data.margin) { HH = f; shownJ = -1; dirty = true; } }); }
+  if (hOff !== 0 && !HH && !hhAsked) { hhAsked = true; ctx.use('outputs/heatmap_hourly.json').then((f) => { if (f && f.data && f.data.margin) { HH = f; shownJ = -1; dirty = true; } });
+    ctx.use('outputs/landing_success_hourly.json').then((f) => { if (f && f.data && f.data.k) { LSH = f; shownJ = -1; dirty = true; } }); }
   if (j * 100 + hOff === shownJ) return; shownJ = j * 100 + hOff;
   $('#pm-date').innerHTML = `${esc(dateOf(j))}<small>${esc(hhOf())} UTC</small>`;
   $('#pm-crumb-date').textContent = t('pm.crumb.date', { date: `${dateOf(j)} · ${hhOf()} UTC` });
+  {   // the launch date this landing needs: landing minus the transit the reader typed
+    const n = transitDays(), d = new Date(Date.parse(isoAt(j)) - n * 864e5), ld = `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+    $('#pm-launch').textContent = t('pm.launch', { date: ld }) + ' ·';
+    $('#pm-crumb-launch').textContent = t('pm.crumb.launch', { date: ld, n });
+    const ti = $('#pm-transit'); if (document.activeElement !== ti) ti.value = n;
+  }
   const rows = sites.map((s) => ({ s, v: verdict(s.i, j) })).sort((a, b) => (b.v.m ?? -9) - (a.v.m ?? -9));
   {   // the answer in words: where to land on this date, and how much slip that choice survives
     const top = rows[0], ok = rows.filter((r) => r.v.k === 'ok').length, pd = HM.data.passed;
@@ -385,7 +401,7 @@ function refreshDate() {
       $('#pm-ans').textContent = t('pm.ans', { date: dateOf(j), site: siteName(top.s.i) });
       $('#pm-sub').textContent = [t('pm.sub', { k: ok, n: sites.length, id: top.s.id.toUpperCase(), m: fmtM(top.v.m), hh: hhOf() }),
         t(end - j > 1 ? 'pm.sub.slip' : end - j === 1 ? 'pm.sub.slip1' : 'pm.sub.slip0', { d: end - j, end: dateOf(end) }),
-        ((q) => (q ? t('pm.sub.p', { p: pct(q.p), n: q.n.toLocaleString('en-US'), lo: Math.round(q.lo * 100), hi: pct(q.hi) }) + (hOff !== 0 ? ' ' + t('pm.p12') : '') : ''))(succ(top.s.i, j)),
+        ((q) => (q ? t('pm.sub.p', { p: pct(q.p), n: q.n.toLocaleString('en-US'), lo: Math.round(q.lo * 100), hi: pct(q.hi) }) + (hOff !== 0 && !q.hourly ? ' ' + t('pm.p12') : '') : ''))(succ(top.s.i, j)),
         (() => {   // margin ranks the sites; if another passing site survives the landing scatter clearly better, say so
           const mine = succ(top.s.i, j); if (!mine) return '';
           const alt = rows.filter((r) => r.v.k === 'ok' && r !== top).map((r) => ({ r, q: succ(r.s.i, j) })).filter((x) => x.q).sort((a, b) => b.q.p - a.q.p)[0];
@@ -398,10 +414,14 @@ function refreshDate() {
       $('#pm-sub').textContent = nx ? t('pm.sub.next', { site: siteName(nx.s.i), date: dateOf(nx.q) }) : t('pm.sub.nonext');
     }
   }
-  $('#pm-rank').innerHTML = rows.map(({ s, v }) => `<li><button type="button" data-i="${s.i}" aria-pressed="${selected === s.i}"><span class="nm">${esc(siteName(s.i))}</span>` + ((q) => (q && v.k !== 'nc' ? `<span class="pm-p"${hOff !== 0 ? ` title="${esc(t('pm.p12'))}"` : ''}>${pct(q.p)}</span>` : ''))(succ(s.i, j)) +
+  $('#pm-rank').innerHTML = rows.map(({ s, v }) => `<li><button type="button" data-i="${s.i}" aria-pressed="${selected === s.i}"><span class="nm">${esc(siteName(s.i))}</span>` + ((q) => (q && v.k !== 'nc' ? `<span class="pm-p"${hOff !== 0 && !q.hourly ? ` title="${esc(t('pm.p12'))}"` : ''}>${pct(q.p)}</span>` : ''))(succ(s.i, j)) +
     (v.k === 'ok' ? `<span class="pm-chip ok">${esc(t('pm.pass'))} ${fmtM(v.m)}</span>` : v.k === 'fail' ? `<span class="pm-chip ${esc(v.cause || 'other')}">${esc(t('pm.c.' + (v.cause || 'power')))} ${fmtM(v.m)}</span>` : `<span class="pm-chip nc">${esc(t('pm.nc'))}</span>`) + '</button></li>').join('');
   $('#pm-rank').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => select(Number(b.dataset.i))));
-  for (const s of sites) { const v = verdict(s.i, j); s.el.dataset.k = v.k === 'fail' ? (v.cause || 'other') : v.k; }
+  for (const s of sites) {   // on the map: the verdict colour and the scatter-test share next to the site name
+    const v = verdict(s.i, j), q = v.k === 'nc' ? null : succ(s.i, j);
+    s.el.dataset.k = v.k === 'fail' ? (v.cause || 'other') : v.k;
+    s.el.querySelector('span').innerHTML = esc(s.id.toUpperCase()) + (q ? `<b>${pct(q.p)}</b>` : '');
+  }
   if (selected === null) { selected = rows[0].s.i; applySel(); if (!ctx.state.site && !playing) ctx.set({ site: rows[0].s.id, time: ctx.state.time || isoAt(j) }); }
   renderPoint(); renderBest();
   const sl = ((P.sun_lon[j] + 180) % 360) - 180, f = (x, a, b) => `${Math.abs(x).toFixed(1)}°${x < 0 ? b : a}`;
@@ -584,6 +604,7 @@ function wire() {
   $('#pm-why').addEventListener('change', (e) => { why = e.target.checked; mat.uniforms.uWhy.value = why ? 1 : 0; root.querySelectorAll('.pm-whyrow').forEach((li) => { li.hidden = !why; }); dirty = true; });
   $('#pm-open').addEventListener('click', openPhoto);
   $('#pm-best').addEventListener('click', (e) => jump(Number(e.currentTarget.dataset.j)));
+  $('#pm-transit').addEventListener('input', (e) => { const v = Number(e.target.value); if (e.target.value !== '' && Number.isFinite(v) && v >= 0 && v <= 400) { ctx.set({ transit: Math.round(v) }); shownJ = -1; dirty = true; } });
   {   // the date is a button: click it to type the landing date and hour (UTC)
     const db = $('#pm-date'), di = $('#pm-date-in'); let j0 = 0, h0 = 0;
     const apply = () => {   // the typed value, read as UTC, to a day frame and an hour
@@ -672,7 +693,7 @@ export default {
     bestMapJ = P.pass_share.indexOf(Math.max(...P.pass_share));
     [THREE, { OrbitControls }] = await Promise.all([import('three'), import('three/addons/controls/OrbitControls.js')]);
     await loadHeights();
-    jf = jOf(c.state.time); hOff = hOffOf(c.state.time); HH = null; hhAsked = false;
+    jf = jOf(c.state.time); hOff = hOffOf(c.state.time); HH = null; LSH = null; hhAsked = false;
     if (c.state.site) { const k = HM.data.site_ids.indexOf(c.state.site); if (k >= 0) selected = k; }
     shell();
   },
@@ -686,6 +707,7 @@ export default {
     if (new URLSearchParams(location.search).get('play') === 'map') setPlaying(true);
   },
   update(s, changed) {
+    if (changed.transit) { shownJ = -1; dirty = true; }
     if (changed.time && !playing && !dragging) { const j = jOf(s.time), h = hOffOf(s.time); if (j !== Math.round(jf) || h !== hOff) { jf = j; hOff = h; setFrame(); } }
     if (changed.site && s.site) { const k = HM.data.site_ids.indexOf(s.site); if (k >= 0 && k !== selected) { selected = k; applySel(); } }
   },

@@ -127,9 +127,15 @@ addStrings({
 });
 
 /* ---------------- state of the drawn screen ---------------- */
-let root = null, ctx = null, GH = null, d = null, NH = null, PB = null, P = null, LS = null;
+let root = null, ctx = null, GH = null, d = null, NH = null, PB = null, P = null, LS = null, LSH = null;
 function planP() {   // the selected plan in outputs/landing_success.json (all sites and dates), or null
-  const ls = LS && LS.data; if (!ls || !Array.isArray(ls.p) || !P || !P.plan) return null;
+  if (!P || !P.plan) return null;
+  const lh = LSH && LSH.data;   // a landing at another hour than 12:00 UTC: the hourly scatter test
+  if (lh && Array.isArray(lh.k) && new Date(P.plan.ms).getUTCHours() !== 12) {
+    const s = lh.site_ids.indexOf(P.plan.site), h = Math.round((P.plan.ms - Date.parse(lh.t0_utc)) / 36e5), k = s < 0 || h < 0 || h >= lh.n_hours ? null : lh.k[s][h];
+    if (typeof k === 'number') return { p: k / lh.n, lo: lh.ci95_low_by_k[k], hi: lh.ci95_high_by_k[k] };
+  }
+  const ls = LS && LS.data; if (!ls || !Array.isArray(ls.p)) return null;
   const k = ls.site_ids.indexOf(P.plan.site), j = ls.landing_times_utc.findIndex((x) => Date.parse(String(x).slice(0, 16) + 'Z') === P.plan.ms), p = k < 0 || j < 0 ? null : ls.p[k][j];
   return typeof p === 'number' ? { p, lo: ls.ci95_low[k][j], hi: ls.ci95_high[k][j] } : null;
 }
@@ -613,7 +619,7 @@ export default {
   async render(el, c) {
     root = el; ctx = c;
     const [g, nh, pb, ls] = await Promise.all([c.use('outputs/ghost_landers.json'), c.use('outputs/nhf_check.json'), c.use('outputs/planb_candidates.json'), c.use('outputs/landing_success.json')]);
-    LS = ls;
+    LS = ls; LSH = new Date(Date.parse(String(c.state.time || '').slice(0, 16) + 'Z')).getUTCHours() === 12 || !c.state.time ? null : await c.use('outputs/landing_success_hourly.json');
     if (!g || !g.data || !g.data.samples || !g.data.grid) return c.missing(['outputs/ghost_landers.json']);
     GH = g; d = g.data; S = d.samples; G = d.grid; NH = nh; PB = pb && Array.isArray(pb.data) ? pb.data : null;
     // the grid step, read from the points themselves (80 m in the current file)
