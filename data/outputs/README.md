@@ -1,6 +1,6 @@
 # data/outputs · 계산 결과 (현지)
 
-구조 v2 표 3의 8번이에요. 화면 ②~⑤가 이 파일을 읽어요. 모두 `{"meta": {...}, "data": {...}}` 형태이고 `meta`는 `data/project_meta.json`과 `data/calc_meta.json`(AI 사용 표기·참고문헌)에서 가져와요.
+구조 v2 표 3의 8번이에요. 화면 ②~⑤가 이 파일을 읽어요. 모두 `{"meta": {...}, "data": {...}}` 형태이고 `meta`는 `data/project_meta.json`과 `data/calc_meta.json`(SI 사용 표기·참고문헌)에서 가져와요.
 
 웹은 진짜 파일(`heatmap.json`)을 먼저 찾고, 없으면 가짜 파일(`heatmap_dummy.json`)을 써요. 가짜 파일을 쓰는 동안은 화면에 "가짜 데이터" 배지가 떠요.
 

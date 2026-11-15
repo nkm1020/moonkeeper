@@ -184,7 +184,7 @@ def write_validation(model, mm, dev):
                      "lunar curvature included",
         "mast_m": 2.0, "heights": "horizon_el = ground + 2 m (mast), horizon_el_0m = ground + 0 m",
         "terrain": pm["terrain"], "nhf": mm, "check_vs_precise": check,
-        "si_use": "Code written with Claude Code (AI) during the event; terrain is NASA LOLA.",
+        "si_use": "Code written with Claude Code (SI) during the event; terrain is NASA LOLA.",
     }
     data = {"point_ids": d["point_ids"], "lat": d["lat"], "lon_east": d["lon_east"], "ground_h_m": d["ground_h_m"],
             "az_step_deg": d["az_step_deg"], "n_az": d["n_az"],

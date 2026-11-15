@@ -61,7 +61,7 @@ def meta(file_name, extra=None):
             "sun_frac": "visible fraction of the solar disk above the local horizon, 0-1",
             "earth_vis": "1 if any part of Earth's disk is above the local horizon (NASA PGDA convention)",
         },
-        "si_use": "Code written with Claude Code (AI) during the event; data are NASA LOLA + JPL Horizons.",
+        "si_use": "Code written with Claude Code (SI) during the event; data are NASA LOLA + JPL Horizons.",
     }
     if extra:
         m.update(extra)

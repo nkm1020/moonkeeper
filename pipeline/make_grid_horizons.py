@@ -111,7 +111,7 @@ def main():
                               "local frame (as in the approach-path code of pipeline/make_inputs.py): across "
                               f"this grid the horizontal plane tilts by up to {tilt:.3f} deg and local north "
                               f"turns by up to {turn:.2f} deg.",
-            "si_use": "Code written with Claude Code (AI) during the event; terrain is NASA LOLA.",
+            "si_use": "Code written with Claude Code (SI) during the event; terrain is NASA LOLA.",
         },
         "data": {
             "point_ids": ids, "lat": lat.tolist(), "lon_east": lon.tolist(),

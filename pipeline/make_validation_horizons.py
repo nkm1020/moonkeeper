@@ -60,7 +60,7 @@ def main():
                                   "(curvature included); 40 m steps to 20 km, 80 m steps beyond; "
                                   "rays stop where the DEMs end (about 80S)",
             },
-            "si_use": "Code written with Claude Code (AI) during the event; terrain is NASA LOLA.",
+            "si_use": "Code written with Claude Code (SI) during the event; terrain is NASA LOLA.",
         },
         "data": {
             "point_ids": ids, "lat": lat.tolist(), "lon_east": lon.tolist(),

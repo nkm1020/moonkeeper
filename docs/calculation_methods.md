@@ -1,6 +1,6 @@
 # Re-planning heatmap, ghost landers, and validation
 
-Part of MoonKeeper (calculation: 현지). 현지 set the direction, requested each check below and reviewed every setting; the code was drafted with SI (AI) assistance (Claude). Code in `pipeline/moonkeeper_b/` and `pipeline/run_*.py`; results in `data/outputs/` (fields: `data/outputs/README.md`).
+Part of MoonKeeper (calculation: 현지). 현지 set the direction, requested each check below and reviewed every setting; the code was drafted with SI assistance (Claude). Code in `pipeline/moonkeeper_b/` and `pipeline/run_*.py`; results in `data/outputs/` (fields: `data/outputs/README.md`).
 
 ## What this part does
 - **Re-planning heatmap**: for each landing site x landing date, checks whether power (sunlight), direct-to-Earth communication and approach-path lighting stay within limits for the mission duration, and how much margin is left. After a launch delay it lists "same site, later date" and "same date, other site" alternatives, ranked by the Plan B rule (Keev): eligible candidates only, then higher margin, shorter waiting time, shorter distance; candidates with missing values are flagged for review.
