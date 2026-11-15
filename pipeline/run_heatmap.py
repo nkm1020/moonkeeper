@@ -24,7 +24,7 @@ ap.add_argument("--duration-days", type=float, default=None,
 ap.add_argument("--delays", type=float, nargs="+", default=[1, 3, 7])
 ap.add_argument("--criteria", default=str(ROOT / "data" / "criteria.json"))
 ap.add_argument("--out", default=str(ROOT / "data" / "outputs"))
-ap.add_argument("--exclude", nargs="*", default=[], help="site ids to leave out, e.g. --exclude crx")
+ap.add_argument("--exclude", nargs="*", default=[], help="site ids to leave out, e.g. --exclude shk")
 a = ap.parse_args()
 
 vis = inputs.load_visibility(Path(a.input_dir) / "visibility.json")
