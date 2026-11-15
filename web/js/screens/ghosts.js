@@ -299,7 +299,7 @@ function draw() {
   if (!g2 || !W) return;
   const k = geo.k0 * NEAR / ui.viewR, cx = geo.cx, cy = geo.cy, far = (ui.viewR - NEAR) / (FAR - NEAR);
   const X = (e) => cx + e * k, Y = (n) => cy - n * k;
-  const INK = '245, 243, 238', FONT = '"Inter", "Noto Sans KR", system-ui, sans-serif', MONO = '"IBM Plex Mono", ui-monospace, monospace';
+  const INK = '245, 243, 238', FONT = getComputedStyle(document.body).fontFamily || '"Inter", "Noto Sans KR", system-ui, sans-serif', MONO = '"IBM Plex Mono", ui-monospace, monospace';
   g2.setTransform(dpr, 0, 0, dpr, 0, 0);
   g2.globalAlpha = 1; g2.fillStyle = '#000'; g2.fillRect(0, 0, W, H);
 
