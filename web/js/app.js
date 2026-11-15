@@ -120,9 +120,18 @@ async function render(s) {
   badge.hidden = dummies.length === 0;
   badge.title = dummies.join('\n');
   if (sc.mounted) sc.mounted(store.get());
+  hourNote(store.get());
+}
+
+// 02 Replan and 05 Decision are computed for the daily 12:00 UTC landing (Plan B exists once a day). If the reader chose another hour on 01, say so.
+function hourNote(s) {
+  const old = document.getElementById('hour-note'); if (old) old.remove();
+  const d = new Date(Date.parse(String(s.time || '').slice(0, 16) + 'Z')), hr = Number.isFinite(d.getTime()) ? d.getUTCHours() : 12;
+  if ((s.step === 'replan' || s.step === 'decision') && hr !== 12) main.prepend(h('p', { id: 'hour-note', class: 'hour-note' }, t('note.hour', { hh: String(hr).padStart(2, '0') + ':00' })));
 }
 
 function onState(s, changed) {
+  hourNote(s);
   if (changed && !changed.step && mounted && mounted.sc.update) {
     renderNav(current(s));
     // a screen can ask for a fresh render, e.g. the sky switching between its 3D scene and the 2D panorama

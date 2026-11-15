@@ -9,7 +9,8 @@ const dict = {
   en: {
     'app.scope': 'Lunar south pole · landing replanning',
     'nav.steps': 'Steps', 'nav.lang': 'Language', 'nav.prev': 'Previous step', 'nav.next': 'Next step',
-    'step.sky': 'Sky', 'step.replan': 'Replan', 'step.ghosts': 'Confidence', 'step.explain': 'Evidence', 'step.decision': 'Decision',
+    'note.hour': 'You chose a {hh} UTC landing. This screen is computed for the 12:00 UTC landing of that date: Plan B candidates exist once a day. Screens 01, 03 and 04 follow the hour.',
+    'step.sky': 'Where & when', 'step.replan': 'Replan', 'step.ghosts': 'Confidence', 'step.explain': 'Evidence', 'step.decision': 'Decision',
     'status.loading': 'Loading…', 'status.missing': 'No data yet. This screen needs:', 'status.error': 'Screen error: {msg}',
     'badge.dummy': 'DEMO DATA',
     'file.title': 'Open this page through a local web server',
@@ -21,7 +22,8 @@ const dict = {
   ko: {
     'app.scope': '달 남극 · 착륙 재계획',
     'nav.steps': '단계', 'nav.lang': '언어', 'nav.prev': '이전 단계', 'nav.next': '다음 단계',
-    'step.sky': '하늘', 'step.replan': '재계획', 'step.ghosts': '신뢰도', 'step.explain': '근거', 'step.decision': '결정',
+    'note.hour': '{hh} UTC 착륙을 고르셨어요. 이 화면은 그 날짜의 12:00 UTC 착륙으로 계산해요. Plan B 후보는 하루에 한 번만 계산돼 있어요. 01·03·04 화면은 고른 시각을 따라가요.',
+    'step.sky': '언제·어디', 'step.replan': '재계획', 'step.ghosts': '신뢰도', 'step.explain': '근거', 'step.decision': '결정',
     'status.loading': '불러오는 중…', 'status.missing': '데이터 없음. 이 화면에 필요한 파일:', 'status.error': '화면 오류: {msg}',
     'badge.dummy': '데모 데이터',
     'file.title': '로컬 웹 서버로 열어 주세요',

@@ -219,11 +219,11 @@ function sv(tag, attrs = {}, ...kids) {
 
 /* ---------------- reading the shared state and the files ---------------- */
 function norm(st) {
-  const empty = st.site === null && st.time === null && st.delay === null;
+  const empty = st.delay === null || st.delay === undefined;   // no delay chosen yet: the same default 02 to 04 show
   const dl = Number(st.delay);
   return {
     site: st.site || DEF.site,
-    time: st.time || DEF.time,
+    time: /^\d{4}-\d\d-\d\dT\d\d/.test(st.time || '') ? st.time.slice(0, 10) + 'T12:00Z' : (st.time || DEF.time),   // 02 to 05 are computed for the daily 12:00 UTC landing
     delay: empty ? DEF.delay : (Number.isFinite(dl) && dl > 0 ? Math.round(dl) : 0),
     planb: st.planb,
   };
@@ -281,6 +281,11 @@ function confidence(siteId, ms) {
   const g = D.ghost && D.ghost.data;
   if (g && g.target_site === siteId && Z(g.landing_time_utc) === ms && typeof g.p === 'number') {
     return { p: g.p, ci: g.ci95, k: g.k, n: g.n, outside: g.outside_grid_frac, sigma: g.sigma_along_m === g.sigma_cross_m ? g.sigma_along_m : null, file: 'data/outputs/ghost_landers.json' };
+  }
+  const ls = D.ls && D.ls.data;   // all sites and dates (pipeline/run_landing_success.py, the same calculation)
+  if (ls && Array.isArray(ls.p)) {
+    const k = ls.site_ids.indexOf(siteId), j = ls.landing_times_utc.findIndex((x) => Z(x) === ms), p = k < 0 || j < 0 ? null : ls.p[k][j];
+    if (typeof p === 'number') return { p, ci: [ls.ci95_low[k][j], ls.ci95_high[k][j]], k: Math.round(p * ls.n), n: ls.n, outside: null, sigma: ls.sigma_along_m === ls.sigma_cross_m ? ls.sigma_along_m : null, file: 'data/outputs/landing_success.json' };
   }
   const rows = D.nhf && D.nhf.data && D.nhf.data.ghost_landers_precise_vs_nhf;
   if (siteId === NHF_SITE && Array.isArray(rows)) {
@@ -585,9 +590,9 @@ export default {
   async render(el, c) {
     root = el; ctx = c; D = null; entered = false;
     const st = norm(c.state);
-    const [hm, rules, nhf, ghost, val, pm, renders] = await Promise.all([
+    const [hm, rules, nhf, ghost, val, pm, renders, ls] = await Promise.all([
       c.use('outputs/heatmap.json'), c.use('outputs/planb_rules.json'), c.use('outputs/nhf_check.json'), c.use('outputs/ghost_landers.json'),
-      c.use('outputs/validation.json'), c.use('project_meta.json'), c.use('renders/index.json'),
+      c.use('outputs/validation.json'), c.use('project_meta.json'), c.use('renders/index.json'), c.use('outputs/landing_success.json'),
     ]);
     if (!hm) return c.missing(['outputs/heatmap.json']);
     let planb = null;
@@ -596,7 +601,7 @@ export default {
       if (!planb) return c.missing(['outputs/planb_candidates.json']);
     }
     T = hm.data.landing_times_utc.map(Z);
-    D = { hm, rules, nhf, ghost, val, pm, renders, planb };
+    D = { hm, rules, nhf, ghost, val, pm, renders, planb, ls };
     draw();
   },
 

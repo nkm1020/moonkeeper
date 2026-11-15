@@ -61,6 +61,7 @@ addStrings({
     'gh.src.plan.out': '{date} is not one of the {n} tested dates. The per-date test covers only dates when the {site} centre passes.',
     'gh.src.plan.fail': 'On {date} the {site} centre fails on {c}.',
     'gh.src.plan.site': 'The per-date test exists for {site} only.',
+    'gh.plan.p': 'Your plan ({plan}): {p} success (95% {lo}–{hi}) in the same test run for all sites and dates.',
     'gh.src.cond.v': 'Target {name} · landing {date} · mission {h} h · landing error 1σ {sa} m along track, {sc} m across · heading {hd}° · seed {seed} · {n} landers.',
     'gh.src.cond.eq': 'The two sigmas are equal, so the heading does not change the result.',
     'gh.src.ground.v': '{n} cells on a {m} m grid within {r} m of the target: {list}. Landers outside the computed grid: {out}.',
@@ -111,6 +112,7 @@ addStrings({
     'gh.src.plan.out': '{date}은 시험한 {n}개 날짜에 없어요. 날짜별 시험은 {site} 중심이 통과하는 날만 다뤄요.',
     'gh.src.plan.fail': '{date}에는 {site} 중심이 {c} 기준에서 실패해요.',
     'gh.src.plan.site': '날짜별 시험은 {site}만 있어요.',
+    'gh.plan.p': '지금 고른 계획({plan}): 모든 착륙지·날짜에 같은 방법으로 돌린 시험에서 성공률 {p} (95% {lo}–{hi})이에요.',
     'gh.src.cond.v': '목표 {name} · 착륙 {date} · 임무 {h}시간 · 착륙 오차 1σ 진행 방향 {sa} m, 가로 방향 {sc} m · 방위 {hd}° · 시드 {seed} · 착륙선 {n}대.',
     'gh.src.cond.eq': '두 시그마가 같아서 방위를 바꿔도 결과가 같아요.',
     'gh.src.ground.v': '목표에서 {r} m 안, {m} m 격자의 칸 {n}개: {list}. 계산 범위 밖에 떨어진 착륙선: {out}.',
@@ -125,7 +127,18 @@ addStrings({
 });
 
 /* ---------------- state of the drawn screen ---------------- */
-let root = null, ctx = null, GH = null, d = null, NH = null, PB = null, P = null;
+let root = null, ctx = null, GH = null, d = null, NH = null, PB = null, P = null, LS = null, LSH = null;
+function planP() {   // the selected plan in outputs/landing_success.json (all sites and dates), or null
+  if (!P || !P.plan) return null;
+  const lh = LSH && LSH.data;   // a landing at another hour than 12:00 UTC: the hourly scatter test
+  if (lh && Array.isArray(lh.k) && new Date(P.plan.ms).getUTCHours() !== 12) {
+    const s = lh.site_ids.indexOf(P.plan.site), h = Math.round((P.plan.ms - Date.parse(lh.t0_utc)) / 36e5), k = s < 0 || h < 0 || h >= lh.n_hours ? null : lh.k[s][h];
+    if (typeof k === 'number') return { p: k / lh.n, lo: lh.ci95_low_by_k[k], hi: lh.ci95_high_by_k[k] };
+  }
+  const ls = LS && LS.data; if (!ls || !Array.isArray(ls.p)) return null;
+  const k = ls.site_ids.indexOf(P.plan.site), j = ls.landing_times_utc.findIndex((x) => Date.parse(String(x).slice(0, 16) + 'Z') === P.plan.ms), p = k < 0 || j < 0 ? null : ls.p[k][j];
+  return typeof p === 'number' ? { p, lo: ls.ci95_low[k][j], hi: ls.ci95_high[k][j] } : null;
+}
 let S = null;                 // samples (columns), G = grid (columns)
 let G = null, cellAt = null, D = [], strip = null, mapJ = -1, TH = 0.9, pins = [];
 let cv = null, g2 = null, W = 0, H = 0, dpr = 1, geo = { cx: 0, cy: 0, k0: 0.5 }, COL = { ...FALLBACK };
@@ -466,7 +479,9 @@ function shell() {
     `<b class="${P.delay ? 'gh-delay' : ''}">${esc(P.delay === 1 ? t('gh.crumb.delay1') : P.delay ? t('gh.crumb.delay', { n: P.delay }) : t('gh.crumb.nodelay'))}</b>`,
     P.alt ? `<span>${esc(t('gh.crumb.alt'))} <b>${esc(siteShort(P.alt.site))}</b> · ${esc(dateStr(P.alt.ms, new Date(P.alt.ms).getUTCFullYear() !== new Date(P.t0).getUTCFullYear()))}</span>` : '',
   ].filter(Boolean).join('<i>/</i>');
-  const scope = sameCase() ? t('gh.scope.same', { site: caseSite, date: dateTime(caseMs) }) : t('gh.scope.other', { site: caseSite, date: dateTime(caseMs), plan: planText() });
+  const pp = sameCase() ? null : planP();
+  const scope = (sameCase() ? t('gh.scope.same', { site: caseSite, date: dateTime(caseMs) }) : t('gh.scope.other', { site: caseSite, date: dateTime(caseMs), plan: planText() })) +
+    (pp ? ' ' + t('gh.plan.p', { plan: planText(), p: pct1(pp.p), lo: p1(pp.lo), hi: pct1(pp.hi) }) : '');
   const meta = t('gh.meta', { site: caseSite.toUpperCase(), iso: Z(d.landing_time_utc), dur: num(d.duration_h), sa: num(d.sigma_along_m), sc: num(d.sigma_cross_m), hd: num(d.heading_deg), seed: d.seed, n, crit: d.criteria_status === 'assumed' ? 'ASSUMED CRITERIA' : `${String(d.criteria_status || '?').toUpperCase()} CRITERIA` }) +
     (d.outside_grid_frac > 0 ? ` · ${pct1(d.outside_grid_frac)} OUTSIDE GRID` : '');
   const sum = NH && NH.data.summary, ge = sum && sum[`p_precise_ge_${TH}`];
@@ -531,7 +546,7 @@ function sources(kinds) {
     const line = (label, ms) => { const r = at(ms); return r ? t('gh.src.plan.in', { label, date: dateStr(ms), p: pct1(r.p), lo: p1(r.lo), hi: pct1(r.hi) }) : null; };
     if (P.site === tgt && P.delay > 0) plan.push(line(t('gh.pin.orig'), P.t0));
     if (P.plan.site === tgt) plan.push(line(t('gh.pin.plan'), P.plan.ms) || t('gh.src.plan.out', { date: dateStr(P.plan.ms), n: D.length, site: tgtS }));
-    else plan.push(t('gh.src.plan.site', { site: tgtS }));
+    else { const q = planP(); plan.push(q ? t('gh.plan.p', { plan: planText(), p: pct1(q.p), lo: p1(q.lo), hi: pct1(q.hi) }) : t('gh.src.plan.site', { site: tgtS })); }
     if (P.site === tgt && !P.alt && P.entry && P.entry.delayed_date_passed === false) {
       if (P.entry.delayed_date_fail_causes) plan.push(t('gh.src.plan.fail', { date: dateStr(P.t1), site: tgtS, c: causeText(P.entry.delayed_date_fail_causes) }));
       if (P.wait !== null) plan.push(line(t('gh.pin.wait'), P.wait));
@@ -603,7 +618,8 @@ export default {
 
   async render(el, c) {
     root = el; ctx = c;
-    const [g, nh, pb] = await Promise.all([c.use('outputs/ghost_landers.json'), c.use('outputs/nhf_check.json'), c.use('outputs/planb_candidates.json')]);
+    const [g, nh, pb, ls] = await Promise.all([c.use('outputs/ghost_landers.json'), c.use('outputs/nhf_check.json'), c.use('outputs/planb_candidates.json'), c.use('outputs/landing_success.json')]);
+    LS = ls; LSH = new Date(Date.parse(String(c.state.time || '').slice(0, 16) + 'Z')).getUTCHours() === 12 || !c.state.time ? null : await c.use('outputs/landing_success_hourly.json');
     if (!g || !g.data || !g.data.samples || !g.data.grid) return c.missing(['outputs/ghost_landers.json']);
     GH = g; d = g.data; S = d.samples; G = d.grid; NH = nh; PB = pb && Array.isArray(pb.data) ? pb.data : null;
     // the grid step, read from the points themselves (80 m in the current file)
