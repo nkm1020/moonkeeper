@@ -87,3 +87,29 @@
 - `heatmap.png`, `ghost_landers_im2.png`: 확인용 그림
 - `ghost_landers.json`은 정밀 지평선(`grid_horizons_im2.json`) 결과예요
 - `criteria_status`는 `data/criteria.json`의 `status`예요. 지금은 `assumed`(Keev 조사로도 출처 있는 숫자가 없어 가정값)라서 화면에 "assumed"를 띄워요. 파일이 없으면 `provisional`이에요.
+
+## `landing_success.json` → 화면 ①·③·⑤ (강민)
+
+착륙지 8곳 × 착륙 날짜 778일에 대해, 착륙 지점이 흩어져도 가정한 기준(전력·교신·접근로)을 지키는 비율이에요. 안전하게 내려앉을 확률이 아니에요. `ghost_landers.json`과 같은 계산(`pipeline/moonkeeper_b`의 몬테카를로)을 모든 착륙지·날짜에 돌렸어요: `pipeline/run_landing_success.py`.
+
+| 필드 | 뜻 |
+| --- | --- |
+| `site_ids`, `landing_times_utc` | 행(착륙지)과 열(착륙 시각, `heatmap.json`과 같은 순서) |
+| `p` | 흩어진 모의 착륙선 `n`대(1,000대) 중 가정한 기준을 지키는 비율. 계산 안 한 날짜(마지막 14일)는 `null` |
+| `ci95_low`, `ci95_high` | Wilson 95% 구간 |
+| `grid_pass_share` | 착륙지 둘레 800 m 안 80 m 격자점 중 통과하는 점의 비율 |
+| `sigma_along_m`, `sigma_cross_m` | 가정한 착륙 오차(1σ, `criteria.json`의 `landing_error_m`) |
+
+확인: IM-2 2028-02-05의 값이 `ghost_landers.json`의 0.714와 같고(`meta.check`), IM-2의 97개 날짜가 `nhf_check.json`의 `p_precise`와 모두 같아요. 착륙 오차와 기준은 가정값이에요. 경사·장애물·유도 오차는 넣지 않았어요.
+
+## `heatmap_hourly.json` → 화면 ① (강민)
+
+`heatmap.json`과 같은 계산을 매시간 착륙(18,673개 시각)에 대해 한 표예요: `pipeline/run_heatmap_hourly.py`. 화면 ①에서 12:00 UTC가 아닌 착륙 시각을 고르면 이 파일을 읽어요.
+
+| 필드 | 뜻 |
+| --- | --- |
+| `t0_utc`, `step_h`, `n` | k번째 값 = `t0_utc` + k시간에 착륙 |
+| `margin[site][k]` | 종합 여유(소수 3자리) |
+| `fail[site]` | 시각마다 한 글자: `0` 통과, 아니면 1 전력 + 2 교신 + 4 접근로 |
+
+접근로 값은 하루에 한 번(12:00 착륙)만 있어서 그 날짜의 값을 써요. 12:00 UTC의 판정은 `heatmap.json`과 6,224칸 모두 같아요(`meta.check`).
