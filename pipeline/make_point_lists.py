@@ -13,7 +13,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pipeline"))
-META = [ROOT / "data" / "project_meta.json", ROOT / "data" / "calc_meta.json"]
 from moonkeeper_b import geo  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
