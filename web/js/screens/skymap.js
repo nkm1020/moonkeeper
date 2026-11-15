@@ -663,8 +663,24 @@ function placeLabels() {
     const dx = n ? pts[k][0] - cx / n : 1, dy = n ? pts[k][1] - cy / n : 0;
     s.el.classList.toggle('left', dx < 0);
     if (dx < 0) s.el.style.transform += ' translateX(-100%)';
-    s.el.querySelector('span').style.transform = n ? `translateY(${Math.max(-16, Math.min(16, dy * 0.6)).toFixed(0)}px)` : '';
+    const sp = s.sp || (s.sp = s.el.querySelector('span')), sw = sp.offsetWidth, sh = sp.offsetHeight;
+    s.box = sw ? { x0: dx < 0 ? pts[k][0] - 18 - sw : pts[k][0] + 18, x1: dx < 0 ? pts[k][0] - 18 : pts[k][0] + 18 + sw, y: pts[k][1] + (n ? Math.max(-16, Math.min(16, dy * 0.6)) : 0), h: sh, py: pts[k][1] } : null;
   });
+  // labels that would cover each other move apart, up and down, until none overlaps (the dots stay on their sites)
+  const bs = sites.filter((s) => s.box);
+  for (let it = 0; it < 16; it++) {
+    let moved = false;
+    for (let a = 0; a < bs.length; a++) for (let b = a + 1; b < bs.length; b++) {
+      const A = bs[a].box, B = bs[b].box;
+      if (A.x0 > B.x1 + 4 || B.x0 > A.x1 + 4) continue;
+      const need = (A.h + B.h) / 2 + 3 - Math.abs(A.y - B.y);
+      if (need <= 0) continue;
+      const up = A.y < B.y || (A.y === B.y && A.py <= B.py) ? -1 : 1;
+      A.y += up * need / 2; B.y -= up * need / 2; moved = true;
+    }
+    if (!moved) break;
+  }
+  sites.forEach((s) => { if (s.box) s.sp.style.transform = `translateY(${Math.max(-60, Math.min(60, s.box.y - s.box.py)).toFixed(1)}px)`; });
   if (pick && rim.pickEl) { if (!pick.w) pick.w = world(pick.x, pick.y, 300); put(rim.pickEl, pick.w); }
   for (const k of ['sun', 'earth']) { const a = rim[k], rr = 205000; put(rim[k + 'El'], world(Math.sin(a) * rr, Math.cos(a) * rr)); }
 }
