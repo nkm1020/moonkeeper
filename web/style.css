@@ -273,3 +273,66 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
 }
+
+/* ================= ① Sky, the photograph (screens/sky3d.js) =================
+   Not a dashboard: one photograph of a moment that has not happened yet. The words sit on the black sky like a
+   magazine page; the camera's data is burned into the bottom edge the way real mission frames carry it. */
+body.immersive main.col { max-width: none; padding: 0; }
+body.immersive .pager { display: none; }
+.s3.photo { position: relative; height: calc(100svh - 48px - 108px); min-height: 560px; overflow: hidden; background: #000; }
+.s3-stage { position: absolute; inset: 0; }
+.s3-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.s3-dev { position: absolute; left: 0; top: 50%; width: 100%; height: auto; transform: translateY(-50%); opacity: 0; transition: opacity 900ms ease; pointer-events: none; }
+.s3-dev.on { opacity: 1; }
+.s3-dev:not(.on) { transition-duration: 120ms; }
+.s3-film-dev { position: absolute; left: 0; right: 0; bottom: -7px; height: 3px; pointer-events: none; }
+.s3-film-dev i { position: absolute; top: 0; width: 3px; height: 3px; margin-left: -1.5px; border-radius: 50%; background: #fff; }
+.s3-film-devlab { margin-left: 16px; color: rgba(255,255,255,.7); }
+.s3-film-devlab::before { content: ""; display: inline-block; width: 3px; height: 3px; border-radius: 50%; background: #fff; margin-right: 6px; vertical-align: 3px; }
+.s3-msg { position: absolute; inset: 0; display: grid; place-items: center; color: #8a8a8a; font: 400 15px/1.4 "Instrument Sans", var(--font); background: #000; }
+.s3-msg[hidden] { display: none; }
+.s3-caption { position: absolute; left: max(32px, calc((100vw - 1152px) / 2)); top: 36px; max-width: min(860px, calc(100vw - 2 * max(32px, (100vw - 1152px) / 2) - 430px)); pointer-events: none; }   /* clear of the site / time picker */
+.s3-caption h1 { font: 400 54px/1.02 "Instrument Serif", "Noto Serif KR", Georgia, serif; letter-spacing: -0.01em; color: #fff; text-wrap: balance; }
+:lang(ko) .s3-sub { word-break: keep-all; }
+:lang(ko) .s3-caption h1 { font-weight: 500; font-size: 42px; line-height: 1.22; letter-spacing: -0.035em; word-break: keep-all; }
+.s3-sub { margin-top: 14px; max-width: 62ch; font: 400 16px/1.5 "Instrument Sans", var(--font); color: rgba(255,255,255,.8); }
+.s3-meta { position: absolute; left: 8px; right: auto; max-width: calc(100% - 16px); bottom: 8px; padding: 4px 8px; background: rgba(0,0,0,.62); font: 400 11px/1.3 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .03em; color: rgba(255,255,255,.78); text-shadow: 0 0 2px #000, 0 0 1px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.s3-anno { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.s3-anno line { stroke: rgba(255,255,255,.85); stroke-width: 1; }
+.s3-anno text { fill: #fff; font: 500 12px "Instrument Sans", var(--font); paint-order: stroke; stroke: rgba(0,0,0,.75); stroke-width: 3px; stroke-linejoin: round; }
+.s3-pick { position: absolute; right: max(32px, calc((100vw - 1152px) / 2)); top: 36px; display: flex; gap: 18px; align-items: baseline; }
+.s3-pick select, .s3-dt input { appearance: none; -webkit-appearance: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.35); border-radius: 0; background: transparent; color: rgba(255,255,255,.88); font: 500 14px "Instrument Sans", var(--font); padding: 2px 0; color-scheme: dark; cursor: pointer; }
+.s3-pick select option { background: #111; color: #fff; }
+.s3-dt { display: inline-flex; align-items: baseline; gap: 6px; }
+.s3-dt span { color: rgba(255,255,255,.55); font: 500 11px "Instrument Sans", var(--font); }
+.s3-dt input { font-variant-numeric: tabular-nums; }
+.s3-bar { display: grid; grid-template-columns: auto auto minmax(240px, 1fr) auto auto; align-items: center; gap: 22px; height: 108px; padding: 0 max(32px, calc((100vw - 1152px) / 2)); background: #000; }
+.s3-play { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; background: #fff; cursor: pointer; transition: transform 120ms; }
+.s3-play:active { transform: scale(0.94); }
+.s3-play svg { width: 12px; height: 12px; margin-left: 2px; fill: #000; }
+.s3-day { font: 500 14px "Instrument Sans", var(--font); color: rgba(255,255,255,.8); white-space: nowrap; }
+.s3-bands { display: block; width: 100%; height: 28px; cursor: ew-resize; }
+.s3-bands .b-track { fill: #141414; } .s3-bands .b-sun { fill: var(--sun); } .s3-bands .b-earth { fill: var(--earth); }
+.s3-bands .b-now { stroke: #fff; stroke-width: 2; }
+.s3-views { display: inline-flex; gap: 16px; }
+.s3-views button { border: 0; background: none; padding: 4px 0; color: rgba(255,255,255,.5); font: 500 13px "Instrument Sans", var(--font); cursor: pointer; border-bottom: 1px solid transparent; white-space: nowrap; }
+.s3-views button[aria-pressed="true"] { color: #fff; border-bottom-color: #fff; }
+.s3-land { height: 36px; padding: 0 18px; border: 0; border-radius: 999px; background: #fff; color: #000; font: 600 14px "Instrument Sans", var(--font); cursor: pointer; white-space: nowrap; }
+.s3-land:hover { background: #e4e4e4; }
+.s3-credit { padding: 10px max(32px, calc((100vw - 1152px) / 2)) 0; color: #7d7d7d; font: 400 12px "Instrument Sans", var(--font); }
+body.immersive .sources { padding: 28px max(32px, calc((100vw - 1152px) / 2)) 48px; margin-top: 0; }
+
+/* the 30-day strip: two photographic bands made of one slit per hour */
+.s3-film { position: relative; height: 66px; margin-top: -8px; cursor: ew-resize; touch-action: none; }
+.s3-film:focus-visible { outline: 1px solid #fff; outline-offset: 4px; }
+.s3-film canvas { display: block; width: 100%; height: 100%; }
+.s3-film-lab { position: absolute; left: 8px; font: 500 11px/1 "Instrument Sans", var(--font); color: rgba(255,255,255,.72); text-shadow: 0 0 3px #000, 0 0 2px #000; pointer-events: none; }
+.s3-film-lab.sun { top: 6px; } .s3-film-lab.earth { top: calc(50% + 7px); }
+.s3-film-date { position: absolute; bottom: -18px; font: 400 11px "Instrument Sans", var(--font); color: rgba(255,255,255,.5); pointer-events: none; }
+.s3-film-date.a { left: 0; } .s3-film-date.b { right: 0; }
+.s3-film-now { position: absolute; top: -5px; bottom: -5px; width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.55); pointer-events: none; }
+
+.s3-ctl { display: grid; justify-items: center; gap: 6px; }
+.s3-ctl .s3-day { font-size: 12px; color: rgba(255,255,255,.6); }
+.s3-film-labs { display: grid; grid-template-rows: 1fr 1fr; height: 66px; margin-top: -8px; text-align: right; font: 500 12px/1 "Instrument Sans", var(--font); color: rgba(255,255,255,.7); }
+.s3-film-labs span { align-self: center; white-space: nowrap; }
