@@ -69,6 +69,7 @@ python3 pipeline/write_project_meta.py  # → data/project_meta.json
 
 - NASA LRO LOLA GDR 극지 DEM `LDEM_85S_40M`, `LDEM_80S_80M` (PDS `LRO-L-LOLA-4-GDR-V1.0`)
 - NASA/JPL Horizons API (DE441)
+- NASA PGDA 장기 일조 · 지구 가시 지도 `AVGVISIB_85S_060M_201608`, `AVGVISIB_85S_060M_201608_EARTH` (Mazarico et al. 2011, https://pgda.gsfc.nasa.gov/products/69)
 
 ## AI 사용 기록
 
