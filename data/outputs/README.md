@@ -16,6 +16,10 @@
 | `metrics` | `sun_mean`, `longest_dark_h`, `first_sunset_h`, `comm_frac`, `longest_comm_gap_h` |
 | `criteria`, `duration_h` | 기준값 (Keev), 임무 기간 |
 
+마지막 14일(2028-12-18 ~ 12-31)은 임무 기간이 데이터 끝(2028-12-31)을 넘어서 계산하지 않았어요. 이 칸은 `overall_margin`·`passed`·`metrics`가 `null`, `fail_causes`가 `""`예요 → 화면에 "계산 안 됨"으로 보여 주세요 (실패가 아니에요).
+
+시각 문자열(`landing_times_utc`, `from_date`, `delayed_date`, `date`, `landing_time_utc`)은 UTC인데 끝에 `Z`가 없어요 (예: `2026-11-01T12:00:00`). JS `Date.parse`는 `Z`가 없으면 브라우저 현지 시각으로 읽으니, `s.slice(0, 16) + 'Z'`처럼 `Z`를 붙여서 읽어 주세요 (공유 상태 `time` 형식 `2026-11-01T12:00Z`와도 같아져요).
+
 ## `planb_candidates.json` → 화면 ②
 
 `from_site`·`from_date`·`delay_days`로 항목을 찾고 `delayed_date`를 보여 줘요. 없으면 "계산된 후보 없음".
