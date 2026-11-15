@@ -3,7 +3,7 @@
 //
 // 화면 파일 규칙 (screens/*.js의 export default):
 //   id, num, label            단계 표시 (글자는 i18n.js의 'step.<id>'가 있으면 그걸 써요)
-//   render(el, ctx)           처음 그릴 때. ctx = { state, set, use, missing }
+//   render(el, ctx)           처음 그릴 때. ctx = { state, set, use, missing, rerender }
 //   update(state, changed)    (선택) 같은 화면에서 상태만 바뀔 때. 없으면 render를 다시 불러요. 'rerender'를 돌려주면 다시 그려요.
 //   unmount()                 (선택) 다른 화면으로 갈 때 정리 (렌더 루프 멈추기 등)
 //   ownTitle: true            (선택) 화면이 h1을 직접 그려요. 없으면 뼈대가 "① 하늘 파노라마"를 h1로 달아요.
@@ -53,7 +53,7 @@ function renderNav(i) {
             store.set({ step: sc.id });
           },
         },
-        h('span', { class: 'n' }, sc.num),
+        h('span', { class: 'n' }, String(j + 1).padStart(2, '0')),
         h('span', { class: 'lb' }, label(sc)),
       )),
     )),
@@ -61,8 +61,9 @@ function renderNav(i) {
   const p = SCREENS[i - 1], n = SCREENS[i + 1];
   prev.disabled = !p;
   next.disabled = !n;
-  prev.textContent = p ? `← ${p.num} ${label(p)}` : '';
-  next.textContent = n ? `${n.num} ${label(n)} →` : '';
+  const two = (k) => String(k + 1).padStart(2, '0');
+  prev.textContent = p ? `← ${two(i - 1)} ${label(p)}` : '';
+  next.textContent = n ? `${two(i + 1)} ${label(n)} →` : '';
   prev.setAttribute('aria-label', t('nav.prev'));
   next.setAttribute('aria-label', t('nav.next'));
   prev.hidden = !p;
@@ -100,6 +101,7 @@ async function render(s) {
       return f;
     },
     missing: (paths) => body.replaceChildren(statusBox(t('status.missing'), paths)),
+    rerender: () => render(store.get()),   // a screen switching between its own views (the sky: map / photograph)
   };
 
   main.replaceChildren(statusBox(t('status.loading')));
@@ -112,7 +114,7 @@ async function render(s) {
   }
   if (id !== renderId) return; // 그새 다른 화면으로 넘어갔으면 버려요
 
-  main.replaceChildren(sc.ownTitle ? body : h('section', {}, h('h1', {}, `${sc.num} ${label(sc)}`), body));
+  main.replaceChildren(sc.ownTitle ? body : h('section', {}, h('h1', {}, `${String(i + 1).padStart(2, '0')} ${label(sc)}`), body));
   mounted = { sc };
   const dummies = used.filter((f) => f.dummy).map((f) => 'data/' + f.path);
   badge.hidden = dummies.length === 0;
