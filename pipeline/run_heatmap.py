@@ -65,7 +65,10 @@ io_utils.save_json(out / "heatmap.json", {
     "landing_times_utc": tab["landing_times"].astype(str), "duration_h": D_h,
     "criteria": {k: {"metric": m, "kind": kd, "limit": lim, "source": criteria_sources[k]} for k, (m, kd, lim) in criteria.items()},
     "criteria_status": criteria_status,
-    "overall_margin": tab["overall_margin"], "passed": tab["passed"], "fail_causes": tab["causes"],
+    # windows past the end of the data have no metrics: passed = null, no fail causes (not a failure)
+    "overall_margin": tab["overall_margin"],
+    "passed": np.where(np.isnan(tab["overall_margin"]), None, tab["passed"]),
+    "fail_causes": np.where(np.isnan(tab["overall_margin"]), "", tab["causes"]),
     "metrics": tab["metrics"], "approach": approach,
 }, meta_path=META, decimals=4, compact=True, inputs=inputs_meta,
    dataset="real inputs; " + criteria_status)
