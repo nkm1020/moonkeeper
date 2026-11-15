@@ -35,7 +35,7 @@ function crumbDate(iso) { const d = new Date(Date.parse(iso)); return Number.isF
 export default {
   id: 'sky',
   num: '①',
-  label: '하늘',
+  label: '언제·어디',
   ownTitle: true,
 
   async render(el, c) {

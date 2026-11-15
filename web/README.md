@@ -15,7 +15,7 @@ python3 -m http.server 8000
 
 ## 디자인
 
-채원님 디자인 시스템(Figma `moonkeeper_design_system`)을 따라요: 라임 `#D8FA5C` + 차콜 `#101419`, 본문·탭·카드는 Inter, 화면 제목과 그 아래 한 줄은 처음 화면에서 쓰던 세리프(Instrument Serif, 한글은 Noto Serif KR), 위쪽 단계 "01 Sky — 02 Replan — 03 Confidence — 04 Evidence — 05 Decision"(지금 단계는 라임 알약), 사진 위 밝은 카드. 색·글꼴 값은 `style.css`의 `:root`에 모여 있어요. 상태 색은 "색 + 이름"으로 같이 써요(전력 `#8A5400`, 교신 `#A3315B`, 접근로 `#7142AD`, 기타 `#5C6777`).
+채원님 디자인 시스템(Figma `moonkeeper_design_system`)을 따라요: 라임 `#D8FA5C` + 차콜 `#101419`, 본문·탭·칩·작은 라벨은 Inter, 영어 화면의 제목·카드 제목·큰 숫자는 처음 화면에서 쓰던 세리프(Instrument Serif, `css/type.css` 한 곳에서 지정), 한국어 화면은 전부 고딕(Noto Sans KR) 그대로, 위쪽 단계 "01 Sky — 02 Replan — 03 Confidence — 04 Evidence — 05 Decision"(지금 단계는 라임 알약), 사진 위 밝은 카드. 색·글꼴 값은 `style.css`의 `:root`에 모여 있어요. 상태 색은 "색 + 이름"으로 같이 써요(전력 `#8A5400`, 교신 `#A3315B`, 접근로 `#7142AD`, 기타 `#5C6777`).
 
 ## 화면 ① 하늘 — 첫 화면: 언제, 어디에 내릴까 (`screens/skymap.js`)
 
