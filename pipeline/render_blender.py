@@ -6,7 +6,7 @@ Terrain: data/scene3d/<site>/ (NASA PGDA SfS 5 m or LOLA 5 m patch, LOLA 40 m to
 metres, curvature included). Sun and Earth: data/inputs/panorama_<site>.json (JPL Horizons). One light, the Sun, with its
 true angular size; everything else in the picture is light reflected by the terrain itself (Cycles path tracing).
 Limits: terrain beyond 60 km is not in the render; the regolith is a rough diffuse surface (Oren-Nayar), not a Hapke model.
-SI use: code written with Claude Code (AI) during the event.
+SI use: code written with Claude Code (SI) during the event.
 """
 import json
 import math
@@ -243,7 +243,7 @@ def main():
                 terrain=S["meta"]["terrain"], ephemeris=S["meta"]["ephemeris"], samples=int(o["spp"]),
                 method="One light: the Sun at its JPL Horizons direction and true angular size. All other light is reflected by the terrain (path tracing, 5 diffuse bounces).",
                 limits="terrain within 60 km only (LOLA every 160 m beyond 8 km); rough diffuse regolith (Oren-Nayar), not a Hapke model; Earth image NASA Blue Marble 2002, orientation approximate; SIMULATED",
-                si_use="Code written with Claude Code (AI) during the event; no generative image model.")
+                si_use="Code written with Claude Code (SI) during the event; no generative image model.")
     if o.get("hours"):
         hours = [int(v) for v in o["hours"].split(",")]
         outdir = Path(o["outdir"]).resolve(); outdir.mkdir(parents=True, exist_ok=True)

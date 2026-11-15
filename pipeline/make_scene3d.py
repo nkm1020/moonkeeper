@@ -124,7 +124,7 @@ def main(site):
                    "the browser lights a point by the share of the solar disc above that horizon (same rule as sun_frac). "
                    "Inside the 5 m patch the browser also marches toward the Sun over the 5 m heights.",
             limits="Horizon maps are sampled every 80 m (inner) / 600 m (outer) and 5 or 10 deg of azimuth; nothing under the DEM resolution is drawn; no synthetic relief.",
-            si_use="Code written with Claude Code (AI) during the event; data are NASA LOLA + JPL Horizons.",
+            si_use="Code written with Claude Code (SI) during the event; data are NASA LOLA + JPL Horizons.",
         ),
         data=dict(
             site=site, name_en=info["name_en"], name_ko=info["name_ko"], lat=LAT, lon=LON, ground_h=round(h0, 1), mast_m=2.0, R=R,

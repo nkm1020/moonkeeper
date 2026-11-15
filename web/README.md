@@ -48,7 +48,7 @@ blender -b -P pipeline/render_blender.py -- --site cr1 --landing 2026-11-17T12:0
 python3 pipeline/make_render_index.py                  # → data/renders/index.json (웹이 읽는 목록)
 ```
 
-Blender 5.x가 필요해요(M1 Pro에서 한 장에 약 20초). 장면은 생성형 AI 이미지가 아니라 NASA 지형을 경로 추적한 계산 결과예요.
+Blender 5.x가 필요해요(M1 Pro에서 한 장에 약 20초). 장면은 SI로 생성한 이미지가 아니라 NASA 지형을 경로 추적한 계산 결과예요.
 
 다시 만들기 (착륙지 하나에 약 8분, 결과 9~14 MB, 여러 곳을 동시에 돌려도 돼요):
 
