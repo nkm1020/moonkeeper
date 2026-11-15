@@ -459,3 +459,19 @@ input[type="range"]::-moz-range-thumb { background: var(--lime); }
 .s3-metrics dd { margin-top: 4px; font: 900 clamp(26px, 2.9vw, 42px)/1 var(--font); letter-spacing: -0.04em; white-space: nowrap; }
 .s3-metrics p { grid-column: 1 / -1; margin-top: 8px; padding: 0 clamp(14px, 1.7vw, 26px); font: italic 400 12px/1.2 var(--font); color: var(--card-foot); }
 @media (max-width: 860px) { .s3-metrics { display: none; } }
+
+/* ================= one screen, two distances: the path line and the flight between the map and a site ================= */
+.s3-crumb { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; margin-bottom: clamp(8px, 1vw, 14px); font: 500 clamp(13px, 1.1vw, 16px)/1.4 var(--font); color: var(--muted); text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6); }
+.s3-crumb b { color: var(--text); font-weight: 700; }
+.s3-crumb i { font-style: normal; color: var(--control); }
+.s3-crumb-back { padding: 0; border: 0; background: none; color: var(--lime); font: inherit; font-weight: 700; cursor: pointer; pointer-events: auto; }
+.s3-crumb-back:hover { color: var(--lime-hover); text-decoration: underline; text-underline-offset: 3px; }
+#mk-warp { position: fixed; inset: 65px 0 0 0; z-index: 15; display: grid; place-items: center; background: #000; opacity: 0; pointer-events: none; }
+#mk-warp p { padding: 0 var(--edge); font: 900 var(--fs-display)/1.05 var(--font); letter-spacing: -0.03em; color: var(--text); text-align: center; text-wrap: balance; }
+.pm .s3-caption, .pm .pm-rank, .pm .pm-legend, .pm .pm-labels, .pm .s3-meta { transition: opacity 700ms ease; }
+.pm.flying .s3-caption, .pm.flying .pm-rank, .pm.flying .pm-legend, .pm.flying .pm-labels, .pm.flying .s3-meta { opacity: 0; transition-duration: 350ms; pointer-events: none; }
+.s3-stage.arrive canvas { animation: mk-arrive 2000ms 450ms cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: 50% 62%; }
+@keyframes mk-arrive { from { transform: scale(1.28); filter: blur(7px) brightness(1.6); } to { transform: none; filter: none; } }
+.s3.photo:not(.pm) .s3-caption, .s3.photo:not(.pm) .s3-pick, .s3.photo:not(.pm) .s3-metrics { animation: mk-rise 900ms 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+@keyframes mk-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .s3-stage.arrive canvas, .s3.photo:not(.pm) .s3-caption, .s3.photo:not(.pm) .s3-pick, .s3.photo:not(.pm) .s3-metrics { animation: none; } }

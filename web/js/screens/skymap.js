@@ -16,7 +16,7 @@ const MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT
 addStrings({
   en: {
     'pm.h1': 'Land where the light stays.',
-    'pm.sub': 'Landing {date}. Lime marks ground where a 14-day mission keeps power and Earth contact.',
+    'pm.sub': 'Lime marks ground where a 14-day mission keeps power and Earth contact. Pick a site to stand on it.',
     'pm.loading': 'Reading the south pole: NASA LOLA terrain, JPL Horizons Sun and Earth…',
     'pm.rank': 'Candidate sites on this date', 'pm.rank.note': 'Site verdicts: 40 m terrain, power + comm + approach. Map: one point per 320 m on 80 m terrain, power + comm. Criteria are assumed values.',
     'pm.pass': 'Pass', 'pm.fail': 'Fail', 'pm.nc': 'Not computed', 'pm.margin': 'margin',
@@ -32,11 +32,11 @@ addStrings({
     'pm.credit': 'Computed map · NASA LRO LOLA 80 m terrain · JPL Horizons DE441 · assumed criteria',
     'pm.src': 'Sources and limits', 'pm.src.what': 'What it shows', 'pm.src.terrain': 'Terrain', 'pm.src.eph': 'Sun and Earth', 'pm.src.method': 'Method', 'pm.src.limits': 'Limits', 'pm.src.check': 'Check',
     'pm.src.check.v': 'At the 8 site cells the map gives the same power + comm verdict as the 40 m site pipeline on {p} of the {n} dates (per site: {list}).',
-    'pm.map': 'Map',
+    'pm.map': 'Map', 'pm.crumb.map': 'South Pole', 'pm.crumb.date': 'Landing {date}', 'pm.crumb.pick': 'Pick a site',
   },
   ko: {
     'pm.h1': '빛이 머무는 곳에 내려요.',
-    'pm.sub': '{date} 착륙. 연두색은 14일 임무가 전력과 지구 교신 기준을 지키는 땅이에요.',
+    'pm.sub': '연두색은 14일 임무가 전력과 지구 교신 기준을 지키는 땅이에요. 착륙지를 고르면 그 자리에 서 볼 수 있어요.',
     'pm.loading': '달 남극을 읽는 중이에요: NASA LOLA 지형, JPL Horizons 해·지구…',
     'pm.rank': '이 날짜의 후보 착륙지', 'pm.rank.note': '착륙지 판정: 40 m 지형, 전력 + 교신 + 접근로. 지도: 80 m 지형 위 320 m마다 한 점, 전력 + 교신. 기준은 가정값이에요.',
     'pm.pass': '통과', 'pm.fail': '실패', 'pm.nc': '계산 안 됨', 'pm.margin': '여유',
@@ -52,7 +52,7 @@ addStrings({
     'pm.credit': '계산한 지도 · NASA LRO LOLA 80 m 지형 · JPL Horizons DE441 · 기준은 가정값',
     'pm.src': '출처와 한계', 'pm.src.what': '무엇을 보여 주나', 'pm.src.terrain': '지형', 'pm.src.eph': '해와 지구', 'pm.src.method': '방법', 'pm.src.limits': '한계', 'pm.src.check': '확인',
     'pm.src.check.v': '착륙지 8곳의 칸에서 지도의 전력 + 교신 판정은 {n}개 날짜 중 {p}가 40 m 착륙지 계산과 같아요(곳별: {list}).',
-    'pm.map': '지도',
+    'pm.map': '지도', 'pm.crumb.map': '달 남극', 'pm.crumb.date': '{date} 착륙', 'pm.crumb.pick': '착륙지를 고르세요',
   },
 });
 
@@ -62,6 +62,8 @@ let renderer, scene, camera, controls, mat, lightScene, lightCam, lightMat, ligh
 let heights, HN, atlas = [], sites = [], rim = {};
 let jf = 16, shownJ = -1, playing = false, dragging = false, why = false, selected = null;
 let raf = 0, last = 0, dirty = true, lightDirty = true, alive = false, onResize, onKey, setTimer = 0;
+let fly = null;   // the flight between the map and one site: { t0, dur, out, pA, qA, pB, qB, res }
+const HOME = { pos: [0, 430, 470], target: [0, -4, 6] }, FOV = 30;
 
 const $ = (s) => root.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -205,10 +207,10 @@ function build() {
   renderer.setClearColor(0x000000, 1);
   st.appendChild(renderer.domElement);
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(30, 1, 5, 6000);
-  camera.position.set(0, 430, 470);
+  camera = new THREE.PerspectiveCamera(FOV, 1, 5, 6000);
+  camera.position.set(...HOME.pos);
   controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(0, -4, 6); controls.enableDamping = true; controls.dampingFactor = 0.08;
+  controls.target.set(...HOME.target); controls.enableDamping = true; controls.dampingFactor = 0.08;
   controls.minDistance = 140; controls.maxDistance = 1500; controls.minPolarAngle = 4 * D2R; controls.maxPolarAngle = 74 * D2R;
   controls.enablePan = true; controls.screenSpacePanning = false;
   controls.addEventListener('change', () => { dirty = true; });
@@ -275,7 +277,7 @@ function shell() {
     <section class="s3 photo pm" aria-label="${esc(t('pm.h1'))}">
       <div class="s3-stage" id="pm-stage"></div>
       <div class="pm-labels" id="pm-labels"></div>
-      <div class="s3-caption pm-caption"><h1>${esc(t('pm.h1'))}</h1><p class="s3-sub" id="pm-sub"></p></div>
+      <div class="s3-caption pm-caption"><p class="s3-crumb"><b>${esc(t('pm.crumb.map'))}</b><i>/</i><span id="pm-crumb-date"></span></p><h1>${esc(t('pm.h1'))}</h1><p class="s3-sub" id="pm-sub"></p></div>
       <aside class="pm-rank" aria-label="${esc(t('pm.rank'))}"><h2>${esc(t('pm.rank'))}</h2><ol id="pm-rank"></ol><p>${esc(t('pm.rank.note'))}</p></aside>
       <ul class="pm-legend">
         <li><i class="pm-sw ok"></i>${esc(t('pm.legend.pass'))} <span>${esc(t('pm.legend.more'))}</span></li>
@@ -303,7 +305,7 @@ function shell() {
   sites = HM.data.site_ids.map((id, i) => {
     const [lat, lon] = HM.data.site_latlon[i], [x, y] = mapXY(lat, lon);
     const el = document.createElement('button'); el.type = 'button'; el.className = 'pm-site'; el.innerHTML = `<i></i><span>${esc(id.toUpperCase())}</span>`;
-    el.addEventListener('click', () => select(i, true));
+    el.addEventListener('click', () => select(i));
     lab.appendChild(el);
     return { id, i, x, y, el, w: null };
   });
@@ -325,12 +327,13 @@ function refreshDate() {
   const j = Math.max(0, Math.min(NV() - 1, Math.round(jf)));
   if (j === shownJ) return; shownJ = j;
   $('#pm-date').textContent = dateOf(j);
+  $('#pm-crumb-date').textContent = t('pm.crumb.date', { date: `${dateOf(j)} · 12:00 UTC` });
   $('#pm-sub').textContent = t('pm.sub', { date: `${dateOf(j)} · 12:00 UTC` });
   const fmtM = (m) => (m >= 0 ? '+' : '−') + Math.abs(m).toFixed(2);
   const rows = sites.map((s) => ({ s, v: verdict(s.i, j) })).sort((a, b) => (b.v.m ?? -9) - (a.v.m ?? -9));
   $('#pm-rank').innerHTML = rows.map(({ s, v }) => `<li><button type="button" data-i="${s.i}" aria-pressed="${selected === s.i}"><span class="nm">${esc(siteName(s.i))}</span>` +
     (v.k === 'ok' ? `<span class="pm-chip ok">${esc(t('pm.pass'))} ${fmtM(v.m)}</span>` : v.k === 'fail' ? `<span class="pm-chip ${esc(v.cause || 'other')}">${esc(t('pm.c.' + (v.cause || 'power')))} ${fmtM(v.m)}</span>` : `<span class="pm-chip nc">${esc(t('pm.nc'))}</span>`) + '</button></li>').join('');
-  $('#pm-rank').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => select(Number(b.dataset.i), false)));
+  $('#pm-rank').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => select(Number(b.dataset.i))));
   for (const s of sites) { const v = verdict(s.i, j); s.el.dataset.k = v.k === 'fail' ? (v.cause || 'other') : v.k; }
   if (selected === null) { selected = rows[0].s.i; applySel(); }
   const sl = ((P.sun_lon[j] + 180) % 360) - 180, f = (x, a, b) => `${Math.abs(x).toFixed(1)}°${x < 0 ? b : a}`;
@@ -345,13 +348,52 @@ function applySel() {
   $('#pm-open').textContent = t('pm.open', { site: s.id.toUpperCase() }) + ' →';
   dirty = true;
 }
-function select(i, open) {
-  if (open && selected === i) return openPhoto();
-  selected = i; applySel();
-}
-function openPhoto() {
+function select(i) { selected = i; applySel(); openPhoto(); }
+async function openPhoto() {
+  if (fly || selected === null) return;
   const j = Math.max(0, Math.min(NV() - 1, Math.round(jf)));
-  if (opts && opts.open) opts.open(sites[selected].id, isoOf(j));
+  setPlaying(false);
+  await flyTo(sites[selected]);
+  if (alive && opts && opts.open) opts.open(sites[selected].id, isoOf(j));
+}
+
+/* ---------------- the flight: pulled into the place, or let go of it ---------------- */
+function nearPose(s, dir0) {   // 7 km from the site, coming in low
+  const q = new THREE.Vector3(...world(s.x, s.y, 0)), d = dir0.clone(); d.y = 0;
+  if (d.lengthSq() < 1e-6) d.set(0, 0, 1);
+  d.normalize().multiplyScalar(Math.cos(24 * D2R)).add(new THREE.Vector3(0, Math.sin(24 * D2R), 0));
+  return { q, p: q.clone().add(d.multiplyScalar(7)) };
+}
+function flyTo(s) {
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dir0 = camera.position.clone().sub(controls.target).normalize(), B = nearPose(s, dir0);
+  controls.enabled = false;
+  $('.pm').classList.add('flying');
+  if (opts && opts.warp) opts.warp(0, siteName(s.i));
+  return new Promise((res) => { fly = { t0: performance.now(), dur: still ? 1 : 1700, out: false, pA: camera.position.clone(), qA: controls.target.clone(), pB: B.p, qB: B.q, res }; dirty = true; });
+}
+function flyFrom(s) {   // arriving back from the photograph: start at the site and pull out to the whole map
+  const A = { p: new THREE.Vector3(...HOME.pos), q: new THREE.Vector3(...HOME.target) }, B = nearPose(s, A.p.clone().sub(A.q).normalize());
+  controls.enabled = false;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  fly = { t0: performance.now(), dur: still ? 1 : 1500, out: true, pA: A.p, qA: A.q, pB: B.p, qB: B.q, res: null };
+}
+function flyStep(now) {
+  const k = Math.min(1, (now - fly.t0) / fly.dur), p = fly.out ? 1 - k : k;
+  const zoom = p * p * p, aim = 1 - (1 - p) * (1 - p);                      // slow start, then pulled in; the aim settles first
+  const q = fly.qA.clone().lerp(fly.qB, aim);
+  const dA = fly.pA.clone().sub(fly.qA), dB = fly.pB.clone().sub(fly.qB), lA = dA.length(), lB = dB.length();
+  const dir = dA.normalize().lerp(dB.normalize(), aim).normalize();
+  camera.position.copy(q).add(dir.multiplyScalar(lA * Math.pow(lB / lA, zoom)));   // distance shrinks by ratio, not by metres
+  camera.up.set(0, 1, 0); camera.lookAt(q);
+  camera.fov = FOV + 34 * zoom * zoom; camera.near = 0.3; camera.updateProjectionMatrix();
+  if (!fly.out && opts && opts.warp) opts.warp(Math.max(0, Math.min(1, (k - 0.6) / 0.36)));
+  dirty = true;
+  if (k >= 1) {
+    const f = fly; fly = null;
+    if (f.out) { camera.fov = FOV; camera.near = 5; camera.updateProjectionMatrix(); camera.position.copy(f.pA); controls.target.copy(f.qA); controls.enabled = true; controls.update(); const el = $('.pm'); if (el) el.classList.remove('flying'); }
+    if (f.res) f.res();
+  }
 }
 
 function drawStrip() {
@@ -425,7 +467,7 @@ function tick(now) {
   raf = requestAnimationFrame(tick);
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   if (playing) { jf += dt * PLAY_DAYS_PER_S; if (jf >= NV() - 1) { jf = NV() - 1; setPlaying(false); } setFrame(); }
-  controls.update();
+  if (fly) flyStep(now); else controls.update();
   if (!dirty) return;
   dirty = false;
   if (lightDirty) { lightDirty = false; renderer.setRenderTarget(lightRT); renderer.render(lightScene, lightCam); renderer.setRenderTarget(null); }
@@ -434,9 +476,10 @@ function tick(now) {
 }
 
 export default {
-  // opts.open(siteId, iso): the reader picked a site, go to its horizon photograph
+  // opts.open(siteId, iso): the reader picked a site, go to its horizon photograph. opts.warp(k, label): the black-out of the flight.
+  // opts.from: the site the reader comes back from (the map starts there and pulls out)
   async render(el, c, o) {
-    root = el; ctx = c; opts = o; selected = null; shownJ = -1; atlas = []; playing = false;
+    root = el; ctx = c; opts = o; selected = null; shownJ = -1; atlas = []; playing = false; fly = null;
     const [pf, hf] = await Promise.all([c.use('polar/polar.json'), c.use('outputs/heatmap.json')]);
     if (!pf || !hf) throw new Error('polar map data missing');
     P = { ...pf.data, __meta: pf.meta }; HM = hf;
@@ -451,6 +494,7 @@ export default {
     alive = true;
     build(); wire(); resize(); setFrame();
     if (selected !== null) applySel();
+    if (opts && opts.from) { const s0 = sites.find((q) => q.id === opts.from); if (s0) { $('.pm').classList.add('flying'); flyFrom(s0); } }
     last = performance.now(); raf = requestAnimationFrame(tick);
     if (new URLSearchParams(location.search).get('play') === 'map') setPlaying(true);
   },
@@ -459,7 +503,7 @@ export default {
     if (changed.site && s.site) { const k = HM.data.site_ids.indexOf(s.site); if (k >= 0 && k !== selected) { selected = k; applySel(); } }
   },
   unmount() {
-    alive = false; cancelAnimationFrame(raf); clearTimeout(setTimer);
+    alive = false; fly = null; cancelAnimationFrame(raf); clearTimeout(setTimer);
     if (onKey) removeEventListener('keydown', onKey);
     if (onResize) removeEventListener('resize', onResize);
     if (controls) controls.dispose();
