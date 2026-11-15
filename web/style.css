@@ -31,6 +31,7 @@
   --radius-card: 20px; --radius-inner: 14px; --radius-control: 10px;
   --gap: 14px; --pad: 22px; --control-height: 38px;
   --font: "Inter", "Noto Sans KR", "Apple SD Gothic Neo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "Instrument Serif", "Noto Serif KR", Georgia, "Times New Roman", serif;
   --fs-title: 32px; --fs-section: 16px; --fs-kpi: 28px; --fs-lead: 40px; --fs-body: 16px; --fs-small: 12px;
   --fs-display: clamp(40px, 5.2vw, 75px); --fs-subtitle: clamp(16px, 1.67vw, 24px); --fs-tab: clamp(14px, 1.39vw, 20px);
 }
@@ -379,9 +380,11 @@ input[type="range"]::-moz-range-thumb { background: var(--lime); }
 
 /* the photograph (01 Sky) in the system's type */
 .s3-caption { top: clamp(20px, 2.6vw, 34px); }
-.s3-caption h1 { font: 900 var(--fs-display)/1 var(--font); letter-spacing: -0.03em; color: var(--text); text-wrap: balance; }
-:lang(ko) .s3-caption h1 { font-weight: 900; font-size: clamp(34px, 4.4vw, 62px); line-height: 1.12; letter-spacing: -0.045em; }
-.s3-lead { margin-top: clamp(6px, 0.8vw, 12px); max-width: 30em; font: 500 var(--fs-subtitle)/1.3 var(--font); letter-spacing: 0.02em; color: var(--text); text-wrap: balance; }
+/* headlines: the serif of our first screens (Instrument Serif), on the team colours */
+.s3-caption h1 { font: 400 calc(var(--fs-display) * 1.12)/0.98 var(--serif); letter-spacing: -0.012em; color: var(--text); text-wrap: balance; }
+:lang(ko) .s3-caption h1 { font-weight: 600; font-size: clamp(34px, 4.4vw, 62px); line-height: 1.16; letter-spacing: -0.035em; }
+.s3-lead { margin-top: clamp(8px, 0.9vw, 14px); max-width: 30em; font: 400 calc(var(--fs-subtitle) * 1.18)/1.2 var(--serif); letter-spacing: 0; color: var(--text); text-wrap: balance; }
+:lang(ko) .s3-lead { font-weight: 500; font-size: var(--fs-subtitle); line-height: 1.35; }
 .s3-sub { margin-top: 10px; font: 400 15px/1.5 var(--font); color: var(--muted); }
 .s3-caption h1, .s3-lead, .s3-sub { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55); }
 .s3-pick { top: clamp(22px, 2.8vw, 38px); align-items: center; gap: 16px; }
@@ -501,7 +504,7 @@ button.pm-date:hover { text-decoration: underline dotted; text-underline-offset:
 .s3-crumb-back { padding: 0; border: 0; background: none; color: var(--lime); font: inherit; font-weight: 700; cursor: pointer; pointer-events: auto; }
 .s3-crumb-back:hover { color: var(--lime-hover); text-decoration: underline; text-underline-offset: 3px; }
 #mk-warp { position: fixed; inset: 65px 0 0 0; z-index: 15; display: grid; place-items: center; background: #000; opacity: 0; pointer-events: none; }
-#mk-warp p { padding: 0 var(--edge); font: 900 var(--fs-display)/1.05 var(--font); letter-spacing: -0.03em; color: var(--text); text-align: center; text-wrap: balance; }
+#mk-warp p { padding: 0 var(--edge); font: 400 calc(var(--fs-display) * 1.12)/1.05 var(--serif); letter-spacing: -0.012em; color: var(--text); text-align: center; text-wrap: balance; }
 .pm .s3-caption, .pm .pm-rank, .pm .pm-legend, .pm .pm-labels, .pm .s3-meta { transition: opacity 700ms ease; }
 .pm.flying .s3-caption, .pm.flying .pm-rank, .pm.flying .pm-legend, .pm.flying .pm-labels, .pm.flying .s3-meta { opacity: 0; transition-duration: 350ms; pointer-events: none; }
 .s3-stage.arrive canvas { animation: mk-arrive 2000ms 450ms cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: 50% 62%; }
