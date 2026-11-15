@@ -1,1 +1,7 @@
 numpy>=1.26
+scipy
+matplotlib
+requests
+rasterio
+pyproj
+pytest
