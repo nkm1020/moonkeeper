@@ -9,9 +9,9 @@ const dict = {
   en: {
     'app.scope': 'Lunar south pole · landing replanning',
     'nav.steps': 'Steps', 'nav.lang': 'Language', 'nav.prev': 'Previous step', 'nav.next': 'Next step',
-    'step.sky': 'Sky', 'step.replan': 'Replan', 'step.ghosts': 'Confidence', 'step.explain': 'Explain', 'step.decision': 'Decide',
+    'step.sky': 'Sky', 'step.replan': 'Replan', 'step.ghosts': 'Confidence', 'step.explain': 'Evidence', 'step.decision': 'Decision',
     'status.loading': 'Loading…', 'status.missing': 'No data yet. This screen needs:', 'status.error': 'Screen error: {msg}',
-    'badge.dummy': 'Dummy data',
+    'badge.dummy': 'DEMO DATA',
     'file.title': 'Open this page through a local web server',
     'file.body': 'A page opened by double-click cannot read JSON files. In the moonkeeper folder run the command below, then open',
     'dur.d': '{d} d', 'dur.h': '{h} h', 'dur.dh': '{d} d {h} h',
@@ -21,9 +21,9 @@ const dict = {
   ko: {
     'app.scope': '달 남극 · 착륙 재계획',
     'nav.steps': '단계', 'nav.lang': '언어', 'nav.prev': '이전 단계', 'nav.next': '다음 단계',
-    'step.sky': '하늘 파노라마', 'step.replan': '재계획', 'step.ghosts': '신뢰도', 'step.explain': '설명·검증', 'step.decision': '결정 카드',
+    'step.sky': '하늘', 'step.replan': '재계획', 'step.ghosts': '신뢰도', 'step.explain': '근거', 'step.decision': '결정',
     'status.loading': '불러오는 중…', 'status.missing': '데이터 없음. 이 화면에 필요한 파일:', 'status.error': '화면 오류: {msg}',
-    'badge.dummy': '가짜 데이터',
+    'badge.dummy': '데모 데이터',
     'file.title': '로컬 웹 서버로 열어 주세요',
     'file.body': '파일을 더블클릭해서 열면 JSON을 못 읽어요. moonkeeper 폴더에서 아래 명령을 실행한 다음 이 주소를 여세요:',
     'dur.d': '{d}일', 'dur.h': '{h}시간', 'dur.dh': '{d}일 {h}시간',

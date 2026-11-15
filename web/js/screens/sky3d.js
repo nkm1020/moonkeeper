@@ -36,6 +36,9 @@ addStrings({
     's3.src.earth.v': 'NASA Blue Marble (Terra MODIS, 2002), public domain. The clouds are from 2002, not the landing date; the face turned to the Moon is set from the date (approximate).',
     's3.src.files.v': '{files} · generated {gen} UTC · real data, not dummy',
     // the headline, written from the data at the shown hour
+    'p.h1': 'Read the horizon.',
+    'p.m.sun': 'Sun visible', 'p.m.earth': 'Earth visible', 'p.m.sunset': 'Until sunset', 'p.m.sunrise': 'Until sunrise', 'p.m.eset': 'Until Earth-set', 'p.m.erise': 'Until Earth-rise',
+    'p.yes': 'Yes', 'p.no': 'No', 'p.m.note': 'Earth visibility ≠ confirmed communication',
     'p.h.last': 'The last hours of sunlight on {site}.',
     'p.h.day': 'Sunlight on {site} for another {d}.',
     'p.h.night': '{site} is in shadow. The Sun returns in {d}.',
@@ -62,6 +65,9 @@ addStrings({
     's3.src.light.v': '빛은 해 하나예요. 지형의 점마다 자기 지평선 위로 보이는 해 원반 비율만큼 밝아요(sun_frac 규칙). 5 m 구역 안에서는 브라우저가 5 m 높이를 따라 해 쪽으로 직접 추적해요. 흙 반사는 Lommel–Seeliger와 위상 함수 근사예요. 카메라는 모의예요: 24 mm 렌즈, 높은 명암 범위, 해의 빛 번짐과 조리개 별빛, 비네팅, 센서 노이즈.',
     's3.src.earth.v': 'NASA Blue Marble(Terra MODIS, 2002), 공공 저작물. 구름은 착륙 날짜가 아니라 2002년 것이에요. 달을 향한 면은 날짜로 돌렸어요(근사).',
     's3.src.files.v': '{files} · {gen} UTC에 만듦 · 진짜 데이터',
+    'p.h1': '지평선을 읽어요.',
+    'p.m.sun': '보이는 해', 'p.m.earth': '지구 보임', 'p.m.sunset': '해 질 때까지', 'p.m.sunrise': '해 뜰 때까지', 'p.m.eset': '지구 질 때까지', 'p.m.erise': '지구 뜰 때까지',
+    'p.yes': '예', 'p.no': '아니요', 'p.m.note': '지구가 보인다고 교신이 확정된 건 아니에요',
     'p.h.last': '{site}의 마지막 햇빛.',
     'p.h.day': '{site}에 햇빛이 {d} 더 머물러요.',
     'p.h.night': '{site}는 그늘 속. 해는 {d} 뒤에 돌아와요.',
@@ -566,9 +572,17 @@ function shell() {
         <label class="s3-dt"><span class="sr">${esc(t('s3.land'))}</span><input type="datetime-local" id="s3-land" step="3600"><span>UTC</span></label>
       </div>
       <div class="s3-caption">
-        <h1 id="s3-h1"></h1>
+        <h1 id="s3-h1">${esc(t('p.h1'))}</h1>
+        <p class="s3-lead" id="s3-lead"></p>
         <p class="s3-sub" id="s3-sub"></p>
       </div>
+      <dl class="s3-metrics" id="s3-metrics">
+        <div><dt>${esc(t('p.m.sun'))}</dt><dd class="num" id="s3-m-sun"></dd></div>
+        <div><dt>${esc(t('p.m.earth'))}</dt><dd id="s3-m-earth"></dd></div>
+        <div><dt id="s3-m-sunl"></dt><dd class="num" id="s3-m-sunt"></dd></div>
+        <div><dt id="s3-m-earthl"></dt><dd class="num" id="s3-m-eartht"></dd></div>
+        <p>${esc(t('p.m.note'))}</p>
+      </dl>
       <p class="s3-meta" id="s3-meta"></p>
       <p class="s3-msg" id="s3-msg">${esc(t('s3.loading'))}</p>
     </section>
@@ -694,7 +708,13 @@ function readouts(i) {
   else head = sunJ < 0 ? t('p.h.dark', { site: name }) : t('p.h.night', { site: name, d: fmt.dur(sunJ - i) });
   const gap = Math.acos(Math.max(-1, Math.min(1, sunDir.v.dot(earthDir.v)))), lit = (1 + Math.cos(Math.PI - gap)) / 2;
   const ms = time.ms(i);
-  $('#s3-h1').textContent = head;
+  $('#s3-lead').textContent = head;
+  // the four answers of the design system's Sky card, read from the same arrays
+  const eJ = ev[i] ? nextFrom(ev, i, (v) => v < 0.5) : nextFrom(ev, i, (v) => v >= 0.5), until = (j) => (j < 0 ? '—' : fmt.dur(j - i));
+  $('#s3-m-sun').textContent = fmt.pct(sf[i]);
+  $('#s3-m-earth').textContent = t(ev[i] ? 'p.yes' : 'p.no');
+  $('#s3-m-sunl').textContent = t(up ? 'p.m.sunset' : 'p.m.sunrise'); $('#s3-m-sunt').textContent = until(sunJ);
+  $('#s3-m-earthl').textContent = t(ev[i] ? 'p.m.eset' : 'p.m.erise'); $('#s3-m-eartht').textContent = until(eJ);
   $('#s3-sub').textContent = t('p.sub', { utc: fmt.utc(ms), kst: fmt.kst(ms), p: fmt.pct(sf[i]), earth: ev[i] ? t('p.earth.in', { lit: fmt.pct(lit) }) : t('p.earth.out') });
   const tp = i - L, d2 = (v) => (v < 0 ? '-' : '+') + Math.abs(v).toFixed(2) + '°';
   $('#s3-meta').textContent = t('p.meta', {
