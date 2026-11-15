@@ -1,6 +1,6 @@
 """Heatmap + Plan B candidates from the real visibility / approach inputs.
 
-Usage: python pipeline/run_heatmap.py INPUT_DIR [--duration-days 14] [--delays 1 3 7 14] [--out data/outputs]
+Usage: python pipeline/run_heatmap.py INPUT_DIR [--duration-days 14] [--delays 1 3 7] [--out data/outputs]
 Thresholds are read from criteria.json if present; otherwise the example assumptions are used
 and the output is marked "provisional". The mission duration comes from --duration-days, else
 mission_duration_days in criteria.json (as in run_ghost_landers.py), else 14 days.
