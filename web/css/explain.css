@@ -82,7 +82,7 @@
 
 /* ---------------- below the fold ---------------- */
 .sources.ex-below { border-top: 1px solid var(--rule); }
-.sources.ex-below .ex-below-h { font: 900 clamp(26px, 2.6vw, 38px)/1.1 var(--font); letter-spacing: -0.03em; color: var(--text); }
+.sources.ex-below .ex-below-h { font: 400 clamp(30px, 3vw, 44px)/1.08 var(--serif); letter-spacing: -0.01em; color: var(--text); }
 .ex-cols { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 28px clamp(32px, 4vw, 64px); margin-top: 22px; }
 .ex-col h3 { margin: 26px 0 8px; font: 700 14px/20px var(--font); color: var(--muted); }
 .ex-col h3:first-child { margin-top: 0; }
