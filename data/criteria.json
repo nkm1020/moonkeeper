@@ -1,0 +1,46 @@
+{
+  "status": "assumed",
+  "criteria": {
+    "power_mean": {
+      "metric": "sun_mean",
+      "kind": "min",
+      "limit": 0.50,
+      "unit": "fraction",
+      "source": "Assumed demo threshold. NASA describes variable sunlight at the lunar south pole but does not specify a 50% minimum. https://www.nasa.gov/reference/moonbase-environment/"
+    },
+    "power_dark": {
+      "metric": "longest_dark_h",
+      "kind": "max",
+      "limit": 96,
+      "unit": "hours",
+      "source": "Assumed demo threshold. NASA describes extended periods of shadow at the lunar south pole but does not specify a 96-hour maximum. https://www.nasa.gov/reference/moonbase-environment/"
+    },
+    "comm_frac": {
+      "metric": "comm_frac",
+      "kind": "min",
+      "limit": 0.40,
+      "unit": "fraction",
+      "source": "Assumed demo threshold. NASA describes changing Earth line-of-sight conditions but does not specify a 40% minimum. https://ntrs.nasa.gov/citations/20250003508"
+    },
+    "comm_gap": {
+      "metric": "longest_comm_gap_h",
+      "kind": "max",
+      "limit": 240,
+      "unit": "hours",
+      "source": "Assumed demo threshold. NASA describes approximately two-week cycles in south-pole communication and solar availability, not a 240-hour maximum gap. https://ntrs.nasa.gov/citations/20220010599"
+    },
+    "approach": {
+      "metric": "approach",
+      "kind": "min",
+      "limit": 0.50,
+      "unit": "fraction",
+      "source": "Assumed demo threshold. NASA discusses lighting and communication constraints during south-pole landing approach but does not specify a 0.50 threshold. https://ntrs.nasa.gov/citations/20220010599"
+    }
+  },
+  "mission_duration_days": 14,
+  "landing_error_m": {
+    "sigma_along": 100,
+    "sigma_cross": 100,
+    "source": "Assumed demo values, not verified statistical uncertainties. NASA reported that IM-2 landed approximately 400 m from its intended landing site; this observed offset does not establish 100 m along-track or cross-track sigma values. https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
+  }
+}
