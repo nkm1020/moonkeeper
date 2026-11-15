@@ -3,6 +3,8 @@
 발사가 밀려도 달 남극 "어디에, 언제 내릴지"를 다시 골라 주고, 그 답을 얼마나 믿을 수 있는지까지 보여 주는 착륙 재계획 웹서비스예요.
 NASA Space Apps Challenge 2026 · Lunar Landing Site Navigator · Seoul
 
+**바로 열기 (Live): https://nkm1020.github.io/moonkeeper/**
+
 구조는 [웹서비스 구조 v2 (확정용)](https://app.notion.com/p/418ac4e043e880488d65f7cdc5871450)을 따라요.
 
 ① 하늘 파노라마 → ② 재계획 (히트맵 · Plan B) → ③ 신뢰도 (유령 착륙선) → ④ 설명·검증 → ⑤ 결정 카드
