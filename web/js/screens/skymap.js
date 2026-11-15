@@ -47,6 +47,9 @@ addStrings({
     'pm.src': 'Sources and limits', 'pm.src.what': 'What it shows', 'pm.src.terrain': 'Terrain', 'pm.src.eph': 'Sun and Earth', 'pm.src.method': 'Method', 'pm.src.limits': 'Limits', 'pm.src.check': 'Check',
     'pm.src.check.v': 'At the 8 site cells the map gives the same power + comm verdict as the 40 m site pipeline on {p} of the {n} dates (per site: {list}).',
     'pm.map': 'Map', 'pm.crumb.map': 'South Pole', 'pm.crumb.date': 'Landing {date}', 'pm.crumb.pick': 'Pick a site',
+    'pm.ovt': 'If you land on', 'pm.hover': '{pos} · click to read this ground',
+    'pm.wait.k': 'NASA LOLA terrain · JPL Horizons Sun and Earth', 'pm.wait.h': 'Reading the south pole…',
+    'pm.f.pass': 'candidate sites pass on this landing date', 'pm.f.d': 'd', 'pm.f.slip': 'the landing can slip and {id} still passes', 'pm.f.p': 'of landers scattered around {id} still meet the criteria',
   },
   ko: {
     'pm.h1': '빛이 머무는 곳에 내려요.',
@@ -82,6 +85,9 @@ addStrings({
     'pm.src': '출처와 한계', 'pm.src.what': '무엇을 보여 주나', 'pm.src.terrain': '지형', 'pm.src.eph': '해와 지구', 'pm.src.method': '방법', 'pm.src.limits': '한계', 'pm.src.check': '확인',
     'pm.src.check.v': '착륙지 8곳의 칸에서 지도의 전력 + 교신 판정은 {n}개 날짜 중 {p}가 40 m 착륙지 계산과 같아요(곳별: {list}).',
     'pm.map': '지도', 'pm.crumb.map': '달 남극', 'pm.crumb.date': '{date} 착륙', 'pm.crumb.pick': '착륙지를 고르세요',
+    'pm.ovt': '이 날 착륙한다면', 'pm.hover': '{pos} · 누르면 이 땅을 읽어요',
+    'pm.wait.k': 'NASA LOLA 지형 · JPL Horizons 해와 지구', 'pm.wait.h': '달 남극을 읽는 중이에요…',
+    'pm.f.pass': '이 착륙 날짜에 통과하는 후보 착륙지', 'pm.f.d': '일', 'pm.f.slip': '착륙이 밀려도 {id} 계속 통과', 'pm.f.p': '{id} 둘레에 흩어진 모의 착륙선 중 기준 통과',
   },
 });
 
@@ -94,6 +100,9 @@ let raf = 0, last = 0, dirty = true, lightDirty = true, alive = false, onResize,
 let hOff = 0, HH = null, LSH = null, hhAsked = false;   // LSH: outputs/landing_success_hourly.json   // landing hour relative to 12:00 UTC (-12..11); HH: outputs/heatmap_hourly.json, read when another hour is chosen
 let mesh = null, pick = null, pickSeq = 0, bestMapJ = 0;   // pick: the ground the reader clicked { x, y, lat, lon, pw, cm, ... }
 let fly = null;   // the flight between the map and one site: { t0, dur, out, pA, qA, pB, qB, res }
+let intro = null, introWant = false;   // the overture: on a first open the map rewinds two lunar days of real dates to today while the camera comes down
+const OVT_DAYS = 59, OVT_MS = 4800;
+let sway = null;   // while nobody has touched the map, the camera drifts a few degrees so the relief reads as real terrain: { t0, tgt, B }
 const HOME = { pos: [0, 430, 470], target: [0, -4, 6] }, FOV = 30;
 
 const $ = (s) => root.querySelector(s);
@@ -312,10 +321,12 @@ function setFrame() {
 /* ---------------- page ---------------- */
 function shell() {
   root.innerHTML = `
-    <section class="s3 photo pm" aria-label="${esc(t('pm.h1'))}">
+    <section class="s3 photo pm${introWant ? ' overture' : ''}" aria-label="${esc(t('pm.h1'))}">
       <div class="s3-stage" id="pm-stage"></div>
       <div class="pm-labels" id="pm-labels"></div>
-      <div class="s3-caption pm-caption"><p class="s3-crumb"><b>${esc(t('pm.crumb.map'))}</b><i>/</i><span id="pm-crumb-date"></span><i>/</i><span id="pm-crumb-launch"></span></p><h1>${esc(t('pm.h1'))}</h1><p class="s3-lead" id="pm-ans"></p><p class="s3-sub" id="pm-sub"></p></div>
+      <div class="pm-ovt" id="pm-ovt" aria-hidden="true" hidden><span>${esc(t('pm.ovt'))}</span><b id="pm-ovt-d"></b></div>
+      <p class="pm-hover num" id="pm-hover" aria-hidden="true" hidden></p>
+      <div class="s3-caption pm-caption"><p class="s3-crumb"><b>${esc(t('pm.crumb.map'))}</b><i>/</i><span id="pm-crumb-date"></span><i>/</i><span id="pm-crumb-launch"></span></p><h1>${esc(t('pm.h1'))}</h1><p class="s3-lead" id="pm-ans"></p><div class="pm-facts" id="pm-facts" hidden></div><p class="s3-sub" id="pm-sub"></p></div>
       <aside class="pm-rank" aria-label="${esc(t('pm.rank'))}"><h2>${esc(t('pm.rank'))}</h2><ol id="pm-rank"></ol><p>${esc(t('pm.rank.note'))}</p><div class="pm-pt" id="pm-pt" hidden></div></aside>
       <ul class="pm-legend">
         <li><i class="pm-sw ok"></i>${esc(t('pm.legend.pass'))} <span>${esc(t('pm.legend.more'))}</span></li>
@@ -325,7 +336,7 @@ function shell() {
         <li class="pm-whyrow" hidden><i class="pm-sw comm"></i>${esc(t('pm.legend.comm'))}</li>
       </ul>
       <p class="s3-meta" id="pm-meta"></p>
-      <p class="s3-msg" id="pm-msg">${esc(t('pm.loading'))}</p>
+      <p class="s3-msg mk-wait" id="pm-msg"><span>${esc(t('pm.wait.k'))}</span><b>${esc(t('pm.wait.h'))}</b></p>
     </section>
     <section class="s3-bar pm-bar" aria-label="${esc(t('pm.strip'))}">
       <div class="s3-ctl"><button class="s3-play" id="pm-play" type="button" aria-label="${esc(t('pm.play'))}"><svg viewBox="0 0 12 12" aria-hidden="true"><path id="pm-play-icon" d="M2 0 L12 6 L2 12 Z"/></svg></button></div>
@@ -345,6 +356,7 @@ function shell() {
     const [lat, lon] = HM.data.site_latlon[i], [x, y] = mapXY(lat, lon);
     const el = document.createElement('button'); el.type = 'button'; el.className = 'pm-site'; el.innerHTML = `<i></i><span>${esc(id.toUpperCase())}</span>`;
     el.addEventListener('click', () => select(i));
+    el.style.setProperty('--k', i);
     lab.appendChild(el);
     return { id, i, x, y, el, w: null };
   });
@@ -399,6 +411,13 @@ function refreshDate() {
     if (top.v.k === 'ok') {
       let end = j; while (end + 1 < NV() && (hOff !== 0 && HH ? verdict(top.s.i, end + 1).k === 'ok' : pd[top.s.i][end + 1] === true)) end++;
       $('#pm-ans').textContent = t('pm.ans', { date: dateOf(j), site: siteName(top.s.i) });
+      {   // the same answer as three numbers; the second and third open the step that explains them (02 Replan, 03 Confidence)
+        const q0 = succ(top.s.i, j), ID = top.s.id.toUpperCase(), fx = $('#pm-facts');
+        const fact = (num, lab, step) => (step ? `<button type="button" data-step="${step}" data-site="${esc(top.s.id)}" data-j="${j}">` : '<div>') + `<b class="num">${num}</b><span>${esc(lab)}</span>` + (step ? '</button>' : '</div>');
+        fx.innerHTML = fact(`${ok}<small>/${sites.length}</small>`, t('pm.f.pass')) + fact(`${end - j}<small>${esc(t('pm.f.d'))}</small>`, t('pm.f.slip', { id: ID }), 'replan')
+          + (q0 ? fact(`${Math.round(q0.p * 100)}<small>%</small>`, t('pm.f.p', { id: ID }), 'ghosts') : '');
+        fx.hidden = false;
+      }
       $('#pm-sub').textContent = [t('pm.sub', { k: ok, n: sites.length, id: top.s.id.toUpperCase(), m: fmtM(top.v.m), hh: hhOf() }),
         t(end - j > 1 ? 'pm.sub.slip' : end - j === 1 ? 'pm.sub.slip1' : 'pm.sub.slip0', { d: end - j, end: dateOf(end) }),
         ((q) => (q ? t('pm.sub.p', { p: pct(q.p), n: q.n.toLocaleString('en-US'), lo: Math.round(q.lo * 100), hi: pct(q.hi) }) + (hOff !== 0 && !q.hourly ? ' ' + t('pm.p12') : '') : ''))(succ(top.s.i, j)),
@@ -410,7 +429,7 @@ function refreshDate() {
     } else {
       let nx = null;
       for (let q = j + 1; q < NV() && !nx; q++) { const c = sites.map((s) => ({ s, v: verdict(s.i, q) })).filter((r) => r.v.k === 'ok').sort((a, b) => b.v.m - a.v.m)[0]; if (c) nx = { q, s: c.s }; }
-      $('#pm-ans').textContent = t('pm.ans.none', { date: dateOf(j) });
+      $('#pm-ans').textContent = t('pm.ans.none', { date: dateOf(j) }); $('#pm-facts').hidden = true;
       $('#pm-sub').textContent = nx ? t('pm.sub.next', { site: siteName(nx.s.i), date: dateOf(nx.q) }) : t('pm.sub.nonext');
     }
   }
@@ -422,7 +441,7 @@ function refreshDate() {
     s.el.dataset.k = v.k === 'fail' ? (v.cause || 'other') : v.k;
     s.el.querySelector('span').innerHTML = esc(s.id.toUpperCase()) + (q ? `<b>${pct(q.p)}</b>` : '');
   }
-  if (selected === null) { selected = rows[0].s.i; applySel(); if (!ctx.state.site && !playing) ctx.set({ site: rows[0].s.id, time: ctx.state.time || isoAt(j) }); }
+  if (selected === null && !intro) { selected = rows[0].s.i; applySel(); if (!ctx.state.site && !playing) ctx.set({ site: rows[0].s.id, time: ctx.state.time || isoAt(j) }); }
   renderPoint(); renderBest();
   const sl = ((P.sun_lon[j] + 180) % 360) - 180, f = (x, a, b) => `${Math.abs(x).toFixed(1)}°${x < 0 ? b : a}`;
   $('#pm-meta').textContent = t('pm.meta', { iso: isoAt(j), slat: f(P.sun_lat[j], 'N', 'S'), slon: f(sl, 'E', 'W'), share: Math.round(P.pass_share[j] * 100) + '%' });
@@ -538,7 +557,7 @@ function nearPose(s, dir0) {   // 7 km from the site, coming in low
 function flyTo(s) {
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const dir0 = camera.position.clone().sub(controls.target).normalize(), B = nearPose(s, dir0);
-  controls.enabled = false;
+  controls.enabled = false; sway = null;
   $('.pm').classList.add('flying');
   if (opts && opts.warp) opts.warp(0, siteName(s.i));
   return new Promise((res) => { fly = { t0: performance.now(), dur: still ? 1 : 1700, out: false, pA: camera.position.clone(), qA: controls.target.clone(), pB: B.p, qB: B.q, res }; dirty = true; });
@@ -565,6 +584,62 @@ function flyStep(now) {
     if (f.out) { camera.fov = FOV; camera.near = 5; camera.updateProjectionMatrix(); camera.position.copy(f.pA); controls.target.copy(f.qA); controls.enabled = true; controls.update(); const el = $('.pm'); if (el) el.classList.remove('flying'); }
     if (f.res) f.res();
   }
+}
+
+/* ---------------- the overture: every frame is a real landing date ---------------- */
+function introStart() {
+  const jT = Math.round(jf), span = Math.min(OVT_DAYS, NV() - 1 - jT), el = $('.pm');
+  introWant = false;
+  if (!el) return;
+  if (span < 15 || fly || playing || dragging) { el.classList.remove('overture'); return; }
+  try { sessionStorage.setItem('mk-overture', '1'); } catch (e) { /* private mode: it plays again next time */ }
+  const tgt = new THREE.Vector3(...HOME.target), B = new THREE.Spherical().setFromVector3(new THREE.Vector3(...HOME.pos).sub(tgt));
+  const A = new THREE.Spherical(B.radius * 1.55, Math.min(71 * D2R, B.phi + 21 * D2R), B.theta - 0.95);   // further out, lower, off to one side
+  const skip = () => { if (intro) intro.t = 1e9; };
+  intro = { t: 0, jT, span, tgt, A, B, skip };   // t: milliseconds of frames shown, so a tab opened in the background still plays it in full when it is first looked at
+  controls.enabled = false; mat.uniforms.uSel.value = 0;
+  {   // the date is set in the headline's own type, so the headline can take its place
+    const h1 = $('.pm-caption h1'), d = $('#pm-ovt-d'), cs = h1 && getComputedStyle(h1);
+    if (cs && d) { d.style.font = cs.font; d.style.letterSpacing = cs.letterSpacing; d.style.fontSizeAdjust = cs.fontSizeAdjust; }
+  }
+  $('#pm-ovt').hidden = false;
+  el.classList.add('overture-run');
+  for (const k of ['pointerdown', 'keydown', 'wheel']) addEventListener(k, skip, { capture: true, passive: true });   // any input ends it at once
+  introStep(0);
+}
+function introStep(dt) {
+  intro.t += dt * 1000;
+  const u = Math.max(0, Math.min(1, intro.t / OVT_MS)), A = intro.A, B = intro.B;
+  jf = intro.jT + intro.span * Math.pow(1 - u, 2.6); setFrame();                 // the dates run fast, then settle on today
+  const c = 1 - Math.pow(1 - u, 4), s = new THREE.Spherical(A.radius + (B.radius - A.radius) * c, A.phi + (B.phi - A.phi) * c, A.theta + (B.theta - A.theta) * c);
+  camera.position.setFromSpherical(s).add(intro.tgt); camera.up.set(0, 1, 0); camera.lookAt(intro.tgt);
+  const d = $('#pm-ovt-d'), j = Math.round(jf);
+  if (d && d.dataset.j !== String(j)) { d.dataset.j = j; d.textContent = dateOf(j); }
+  dirty = true;
+  if (u >= 1) introEnd();
+}
+function introEnd() {
+  const it = intro; intro = null; if (!it) return;
+  for (const k of ['pointerdown', 'keydown', 'wheel']) removeEventListener(k, it.skip, { capture: true });
+  if (!playing && !dragging) { jf = it.jT; setFrame(); }
+  camera.position.set(...HOME.pos); controls.target.set(...HOME.target); controls.enabled = true; controls.update();
+  if (selected !== null) applySel();
+  shownJ = -1; dirty = true;
+  const el = $('.pm'); if (!el) return;
+  el.classList.remove('overture', 'overture-run'); el.classList.add('reveal');
+  swayStart();
+  setTimeout(() => { el.classList.remove('reveal'); const o = el.querySelector('#pm-ovt'); if (o) o.hidden = true; }, 2800);
+}
+
+function swayStart() {
+  if (sway || !alive || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const tgt = new THREE.Vector3(...HOME.target);
+  sway = { t0: performance.now(), tgt, B: new THREE.Spherical().setFromVector3(new THREE.Vector3(...HOME.pos).sub(tgt)) };
+}
+function swayStep(now) {
+  const t = (now - sway.t0) / 1000, k = Math.min(1, t / 4), e = k * k * (3 - 2 * k), B = sway.B;   // eases in over 4 s
+  const s = new THREE.Spherical(B.radius * (1 - 0.012 * e * Math.sin(t * 6.2832 / 37)), B.phi + 0.014 * e * Math.sin(t * 6.2832 / 29), B.theta + 0.062 * e * Math.sin(t * 6.2832 / 23));
+  camera.position.setFromSpherical(s).add(sway.tgt); camera.lookAt(sway.tgt); dirty = true;
 }
 
 function drawStrip() {
@@ -603,6 +678,7 @@ function wire() {
   $('#pm-play').addEventListener('click', () => { if (jf >= NV() - 1) jf = 0; setPlaying(!playing); });
   $('#pm-why').addEventListener('change', (e) => { why = e.target.checked; mat.uniforms.uWhy.value = why ? 1 : 0; root.querySelectorAll('.pm-whyrow').forEach((li) => { li.hidden = !why; }); dirty = true; });
   $('#pm-open').addEventListener('click', openPhoto);
+  $('#pm-facts').addEventListener('click', (e) => { const b = e.target.closest('button[data-step]'); if (!b || fly || intro) return; setPlaying(false); clearTimeout(setTimer); ctx.set({ step: b.dataset.step, site: b.dataset.site, time: isoAt(Number(b.dataset.j)) }); });
   $('#pm-best').addEventListener('click', (e) => jump(Number(e.currentTarget.dataset.j)));
   $('#pm-transit').addEventListener('input', (e) => { const v = Number(e.target.value); if (e.target.value !== '' && Number.isFinite(v) && v >= 0 && v <= 400) { ctx.set({ transit: Math.round(v) }); shownJ = -1; dirty = true; } });
   {   // the date is a button: click it to type the landing date and hour (UTC)
@@ -623,12 +699,30 @@ function wire() {
   }
   let down = null;   // a click that is not a drag of the camera
   const cvs = renderer.domElement;
-  cvs.addEventListener('pointerdown', (ev) => { down = ev.button === 0 ? { x: ev.clientX, y: ev.clientY, t: performance.now() } : null; });
+  const still = () => { sway = null; };   // the reader takes the camera: it stays theirs
+  cvs.addEventListener('wheel', still, { passive: true }); cvs.addEventListener('pointerdown', still);
+  cvs.addEventListener('pointerdown', (ev) => { down = ev.button === 0 && !intro ? { x: ev.clientX, y: ev.clientY, t: performance.now() } : null; });   // a click that ends the overture picks nothing
   cvs.addEventListener('pointerup', (ev) => {
     const d = down; down = null;
     if (!d || fly || Math.hypot(ev.clientX - d.x, ev.clientY - d.y) > 5 || performance.now() - d.t > 600) return;
     const g = groundAt(ev); if (g) pickGround(g);
   });
+  {   // the pointer reads the ground: latitude and longitude under it, next to the cursor
+    const hv = $('#pm-hover'); let hq = null, hraf = 0;
+    const hide = () => { hv.hidden = true; };
+    cvs.addEventListener('pointermove', (ev) => {
+      if (ev.pointerType === 'touch' || ev.buttons || fly || intro) return hide();
+      hq = ev;
+      if (!hraf) hraf = requestAnimationFrame(() => {
+        hraf = 0; if (!alive || !hq) return;
+        const g = groundAt(hq), r = cvs.getBoundingClientRect(); if (!g) return hide();
+        hv.textContent = t('pm.hover', { pos: fmtPos(g.lat, g.lon) });
+        hv.style.transform = `translate(${(hq.clientX - r.left + 16).toFixed(0)}px, ${(hq.clientY - r.top + 18).toFixed(0)}px)`;
+        hv.hidden = false;
+      });
+    });
+    cvs.addEventListener('pointerleave', hide); cvs.addEventListener('pointerdown', hide);
+  }
   onKey = (ev) => { if (ev.code === 'Escape' && pick) clearPick(); if (ev.code === 'Space' && !/INPUT|SELECT|BUTTON/.test(document.activeElement.tagName)) { ev.preventDefault(); if (jf >= NV() - 1) jf = 0; setPlaying(!playing); } };
   addEventListener('keydown', onKey);
   onResize = () => resize();
@@ -689,7 +783,7 @@ function tick(now) {
   raf = requestAnimationFrame(tick);
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   if (playing) { jf += dt * PLAY_DAYS_PER_S; if (jf >= NV() - 1) { jf = NV() - 1; setPlaying(false); } setFrame(); }
-  if (fly) flyStep(now); else controls.update();
+  if (intro) introStep(dt); else if (fly) flyStep(now); else { if (sway && controls.enabled) swayStep(now); controls.update(); }
   if (!dirty) return;
   dirty = false;
   if (lightDirty) { lightDirty = false; renderer.setRenderTarget(lightRT); renderer.render(lightScene, lightCam); renderer.setRenderTarget(null); }
@@ -701,7 +795,13 @@ export default {
   // opts.open(siteId, iso): the reader picked a site, go to its horizon photograph. opts.warp(k, label): the black-out of the flight.
   // opts.from: the site the reader comes back from (the map starts there and pulls out)
   async render(el, c, o) {
-    root = el; ctx = c; opts = o; selected = null; shownJ = -1; atlas = []; playing = false; fly = null; pick = null; pickSeq++;
+    root = el; ctx = c; opts = o; selected = null; shownJ = -1; atlas = []; playing = false; fly = null; pick = null; pickSeq++; intro = null; sway = null;
+    {   // the overture plays on a first open of the plain address (no date in it), once per browser session. ?intro=1 forces it, ?intro=0 turns it off.
+      const q = new URLSearchParams(location.search); let seen = false;
+      try { seen = !!sessionStorage.getItem('mk-overture'); } catch (e) { /* no storage */ }
+      introWant = !(o && o.from) && q.get('play') !== 'map' && q.get('intro') !== '0' && !matchMedia('(prefers-reduced-motion: reduce)').matches
+        && (q.get('intro') === '1' || (!c.state.time && !seen));
+    }
     const [pf, hf, lf] = await Promise.all([c.use('polar/polar.json'), c.use('outputs/heatmap.json'), c.use('outputs/landing_success.json')]);
     LS = lf && lf.data && Array.isArray(lf.data.p) ? lf : null;
     if (!pf || !hf) throw new Error('polar map data missing');
@@ -721,6 +821,12 @@ export default {
     if (opts && opts.from) { const s0 = sites.find((q) => q.id === opts.from); if (s0) { $('.pm').classList.add('flying'); flyFrom(s0); } }
     last = performance.now(); raf = requestAnimationFrame(tick);
     if (new URLSearchParams(location.search).get('play') === 'map') setPlaying(true);
+    if (!introWant && !fly) swayStart();
+    if (introWant) {   // start when the first map of margins has arrived; if it does not arrive, show the page as it is
+      const giveUp = () => { if (introWant) { introWant = false; const el = root && root.querySelector('.pm'); if (el) el.classList.remove('overture'); } };
+      loadAtlas(Math.floor(Math.round(jf) / P.frames_per_atlas)).p.then(() => { if (alive && introWant) introStart(); }, giveUp);
+      setTimeout(giveUp, 15000);
+    }
   },
   update(s, changed) {
     if (changed.transit) { shownJ = -1; dirty = true; }
@@ -729,6 +835,8 @@ export default {
   },
   unmount() {
     alive = false; fly = null; cancelAnimationFrame(raf); clearTimeout(setTimer);
+    if (intro) { for (const k of ['pointerdown', 'keydown', 'wheel']) removeEventListener(k, intro.skip, { capture: true }); intro = null; }
+    introWant = false; sway = null;
     if (onKey) removeEventListener('keydown', onKey);
     if (onResize) removeEventListener('resize', onResize);
     if (controls) controls.dispose();

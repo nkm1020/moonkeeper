@@ -28,6 +28,7 @@ const next = document.getElementById('next');
 
 let renderId = 0;
 let mounted = null; // { sc } once a screen has finished render()
+let lastStep = null, enterTimer = 0;
 
 const label = (sc) => {
   const k = 'step.' + sc.id, s = t(k);
@@ -104,7 +105,11 @@ async function render(s) {
     rerender: () => render(store.get()),   // a screen switching between its own views (the sky: map / photograph)
   };
 
-  main.replaceChildren(statusBox(t('status.loading')));
+  // "Loading…" shows only if the screen takes a moment; 01 waits on its own black stage, in the place its headline will take (css/polish.css)
+  const wait = sc.id === 'sky' ? h('p', { class: 'mk-wait late' }, h('span', {}, t('pm.wait.k')), h('b', {}, t('pm.wait.h'))) : statusBox(t('status.loading'));
+  wait.classList.add('late');
+  if (sc.id === 'sky') { const tb = document.querySelector('.topbar'); if (tb) wait.style.top = Math.round(tb.getBoundingClientRect().bottom) + 'px'; }
+  main.replaceChildren(wait);
   main.dataset.screen = sc.id;
   try {
     await sc.render(body, ctx);
@@ -115,6 +120,11 @@ async function render(s) {
   if (id !== renderId) return; // 그새 다른 화면으로 넘어갔으면 버려요
 
   main.replaceChildren(sc.ownTitle ? body : h('section', {}, h('h1', {}, `${String(i + 1).padStart(2, '0')} ${label(sc)}`), body));
+  // the headline is written in once per step change, not on every redraw of the same step (css/polish.css)
+  clearTimeout(enterTimer);
+  main.classList.toggle('mk-enter', lastStep !== sc.id);
+  if (lastStep !== sc.id) enterTimer = setTimeout(() => main.classList.remove('mk-enter'), 1800);
+  lastStep = sc.id;
   mounted = { sc };
   const dummies = used.filter((f) => f.dummy).map((f) => 'data/' + f.path);
   badge.hidden = dummies.length === 0;

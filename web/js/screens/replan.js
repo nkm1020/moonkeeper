@@ -251,7 +251,7 @@ function windowHtml(M) {
     return `<div class="rp-ch${j === M.j0 ? ' o' : isD(j) ? ' d' : ''}">${tag}<span class="num">${esc(lab)}</span></div>`;
   }).join('');
   const rows = d.site_ids.map((id, s) => {
-    const cells = cols.map((j) => {
+    const cells = cols.map((j, ci) => {
       const c = cell(s, j), date = dLong(msOf(j));
       const mark = (s === M.si && j === M.j0 ? ' is-orig' : '') + (s === M.si && isD(j) ? ' is-del' : '') + (M.delay && M.sel && s === M.sel.si && j === M.sel.j ? ' is-pb' : '');
       let style = '', inner = '', say = t('rp.nc');
@@ -264,7 +264,7 @@ function windowHtml(M) {
         say = `${t('rp.fail')} ${fmtM(c.m)}, ${causeNames(cs)}`;
       } else inner = '<b>–</b>';
       const label = t('rp.cell', { site: fullName(s), date, v: say });
-      return `<button type="button" class="rp-cell ${c.k}${mark}" data-act="cell" data-s="${s}" data-j="${j}" data-fid="c${s}-${j}" style="${style}" title="${esc(label)}" aria-label="${esc(label)}"${s === M.si && j === M.j0 ? ' aria-current="true"' : ''}>${inner}</button>`;
+      return `<button type="button" class="rp-cell ${c.k}${mark}" data-act="cell" data-s="${s}" data-j="${j}" data-fid="c${s}-${j}" style="${style};--c:${ci};--r:${s}" title="${esc(label)}" aria-label="${esc(label)}"${s === M.si && j === M.j0 ? ' aria-current="true"' : ''}>${inner}</button>`;
     }).join('');
     return `<button type="button" class="rp-rl" data-act="row" data-s="${s}" data-fid="r${s}" aria-pressed="${s === M.si}" title="${esc(fullName(s))}"><b>${esc(short(id))}</b><span>${esc(fullName(s))}</span></button>${cells}`;
   }).join('');
