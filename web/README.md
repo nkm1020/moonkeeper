@@ -78,6 +78,21 @@ python3 pipeline/make_scene3d.py sr1     # → data/scene3d/sr1/, data/scene3d/i
 python3 pipeline/make_scene3d.py --index # 여러 곳을 동시에 만들었으면 끝나고 목록을 다시 써요
 ```
 
+## 화면 ②~⑤
+
+모두 화면 ①과 같은 구조예요: 검은 무대(계산한 그림이나 데이터 그림) + 답 카드 + 아래 조작 띠(라임 버튼 하나) + 화면 아래 출처. 화면마다 `js/screens/<id>.js`와 `css/<id>.css` 한 쌍이에요.
+
+| 화면 | 파일 | 읽는 데이터 |
+| --- | --- | --- |
+| 02 Replan | `replan.js` | `outputs/heatmap.json`, `outputs/planb_candidates.json`, `outputs/planb_rules.json`, `renders/index.json` |
+| 03 Confidence | `ghosts.js` | `outputs/ghost_landers.json`(IM-2, 2028-02-05 한 건), `outputs/nhf_check.json`(IM-2 97일) |
+| 04 Evidence | `explain.js` | `inputs/panorama_<site>.json`, `outputs/validation.json`, `project_meta.json` |
+| 05 Decision | `decision.js` | 위 파일들 전부 |
+
+- 공유 상태 `planb`: `wait:YYYY-MM-DD`(같은 곳에서 기다리기) 또는 `move:<site>`(같은 날 다른 곳). ②가 쓰고 ⑤가 읽어요. 비어 있으면 1순위 후보를 써요.
+- 기본 이야기(주소에 값이 없을 때): IM-2, 2026-11-17 12:00 UTC 착륙, 7일 지연.
+- 성공 확률은 계산된 경우(IM-2)만 보여 주고, 나머지는 "평가 안 됨"이라고 적어요.
+
 ## 공통 틀 (`js/`)
 
 | 파일 | 하는 일 |
